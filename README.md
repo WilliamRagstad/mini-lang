@@ -1,7 +1,7 @@
 <div align="center">
     <br>
     <br>
-    <img alt="Mini-Lang logo" src="assets/logo.png" width="300px"/>
+    <img alt="Mini-Lang logo" src="assets/logo_small.png" width="300px"/>
     <p>
     <br>
         The example mini programming language written for the<br>
