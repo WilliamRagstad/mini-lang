@@ -1,14 +1,15 @@
 <div align="center">
+    <br>
+    <br>
     <img alt="Mini-Lang logo" src="assets/logo.png" width="300px"/>
     <p>
     <br>
         The example mini programming language written for the<br>
         <em>"Write a language in a week"</em> series.
     </p>
+    <br>
+    <br>
 </div>
-<br>
-<br>
-<br>
 
 # The `mini` language
 
