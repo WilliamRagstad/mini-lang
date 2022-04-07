@@ -1,5 +1,5 @@
 import sys
-from src.interpreter import interpret
+from src.interpreter import interpret, repl
 
 # === Global variables ===
 
@@ -9,7 +9,7 @@ Usage: mini (options) [file.mini]
 Options:
     -h, --help      Print this help message and exit
     -r, --repl      Start the REPL
-    -d, --debug     Enable debug mode
+    --debug     Enable debug mode
 
 Examples:
     mini -r         Enter the REPL
@@ -24,14 +24,14 @@ def print_error(msg: str):
 # === Main ===
 def main(args: list):
     debug = False
-    if '-d' in args or '--debug' in args:
+    if '--debug' in args:
         debug = True
+        args.remove('--debug')
     if len(args) == 0 or '-h' in args or '--help' in args:
         print(USAGE)
         sys.exit(0)
     elif '-r' in args or '--repl' in args:
         repl(debug)
-        sys.exit(0)
     
     # Evaluate
     elif len(args) > 1:
