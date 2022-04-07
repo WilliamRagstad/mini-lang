@@ -144,7 +144,7 @@ def read_identifier(start: str, next: str) -> Token:
     dprint(f"Identifier: {i}, next char: {c}")
     return Token("Identifier", i), c
 
-def read_number(start: str) -> Token:
+def read_number(start: str, next: str):
     """
     Read a number from source.
 
@@ -158,8 +158,12 @@ def read_number(start: str) -> Token:
     Token
         A token with the number value.
     """
-    n = start
-    c = None # Next character
+    dprint(f"Reading number starting with {start}, next: {next}")
+    if not next.isdigit():
+        dprint(f"Returning number: {start}")
+        return Token("Number", start), next
+    n = start + next
+    c: str = None # Next character
     while can_read():
         c = next_char()
         if c.isdigit():
