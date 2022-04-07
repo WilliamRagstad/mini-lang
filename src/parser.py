@@ -40,6 +40,18 @@ class AtomicExpressionNode(Node):
     def __str__(self):
         return f"{self.name} {self.valueType}({self.value})"
 
+class AssignmentNode(Node):
+    """
+    An assignment node in the abstract syntax tree.
+    """
+    def __init__(self, identifier: str, expression: Node):
+        """
+        Initialize an assignment node with an identifier and an expression.
+        """
+        super().__init__("Assignment")
+        self.identifier = identifier
+        self.expression = expression
+
 class BinaryExpressionNode(Node):
     """
     A binary expression node in the abstract syntax tree.
@@ -53,6 +65,9 @@ class BinaryExpressionNode(Node):
         self.operator = operator
         self.left = left
         self.right = right
+    
+    def __str__(self):
+        return f"{self.name} ({self.left} {self.operator} {self.right})"
 
 class FunctionCallNode(Node):
     """
@@ -93,12 +108,18 @@ def parse_expression() -> Node:
         if nt.name == 'Bracket' and nt.value == '(':
             tokens.pop(0) # Remove the opening bracket
             lhs = parse_function_call(t.value)
+        elif nt.name == 'AssignmentOperator':
+            tokens.pop(0) # Remove the assignment operator
+            lhs = AssignmentNode(
+                t.value,
+                parse_expression()
+            )
         else:
             dprint(f"Found identifier '{t.value}'")
             lhs = AtomicExpressionNode("Identifier", t.value)
     elif t.name in ["String", "Number", "Boolean"]:
         dprint(f"Found {t.name} '{t.value}'")
-        return AtomicExpressionNode(t.name, t.value)
+        return AtomicExpressionNode(t.name.lower(), t.value)
     else:
         raise Exception(f"Unexpected {t.name} token: '{t.value}'")
     

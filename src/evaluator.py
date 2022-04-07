@@ -1,6 +1,6 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, UnitAtom, ValueAtom
 from .environment import Environment
-from .parser import AtomicExpressionNode, BinaryExpressionNode, FunctionCallNode, Node, ProgramNode
+from .parser import AssignmentNode, AtomicExpressionNode, BinaryExpressionNode, FunctionCallNode, Node, ProgramNode
 
 # Global variables
 
@@ -14,40 +14,69 @@ def dprint(*args):
     if debug:
         print(*args)
 
+def compatible_types(lhs: Atom, rhs: Atom, types: list[str]) -> bool:
+    """
+    Check if the two atoms are compatible with the given types.
+    """
+    if not isinstance(lhs, ValueAtom):
+        raise Exception(f"Left hand side in expression is not an atomic value")
+    if not isinstance(rhs, ValueAtom):
+        raise Exception(f"Right hand side in expression is not an atomic value")
+    if lhs.valueType in types and rhs.valueType in types:
+        return True
+    else:
+        raise Exception(f"Incompatible types: {lhs.valueType} and {rhs.valueType}")
+
 def evaluate_expression(expression: Node, env: Environment) -> Atom:
     if isinstance(expression, AtomicExpressionNode):
-        return ValueAtom(expression.valueType, expression.value)
+        if expression.valueType == "Identifier":
+            dprint(f"Evaluating identifier '{expression.value}'")
+            return env.get(expression.value)
+        else:
+            return ValueAtom(expression.valueType, expression.value)
+    elif isinstance(expression, AssignmentNode):
+        dprint(f"Evaluating assignment {expression.identifier} = {expression.expression}")
+        value = evaluate_expression(expression.expression, env)
+        env.set(expression.identifier, value)
+        # dprint(f"Resulting environment: {env}")
+        return value
     elif isinstance(expression, FunctionCallNode):
         return evaluate_function_call(expression, env)
     elif isinstance(expression, BinaryExpressionNode):
+        op = expression.operator
         lhs = evaluate_expression(expression.left, env)
         rhs = evaluate_expression(expression.right, env)
-        if expression.operator == "+":
-            return lhs + rhs
-        elif expression.operator == "-":
-            return lhs - rhs
-        elif expression.operator == "*":
-            return lhs * rhs
-        elif expression.operator == "/":
-            return lhs / rhs
-        elif expression.operator == "%":
-            return lhs % rhs
-        elif expression.operator == "==":
-            return lhs == rhs
-        elif expression.operator == "!=":
-            return lhs != rhs
-        elif expression.operator == ">":
-            return lhs > rhs
-        elif expression.operator == "<":
-            return lhs < rhs
-        elif expression.operator == ">=":
-            return lhs >= rhs
-        elif expression.operator == "<=":
-            return lhs <= rhs
-        elif expression.operator == "&":
-            return lhs and rhs
-        elif expression.operator == "|":
-            return lhs or rhs
+        dprint(f"Evaluating binary expression '{lhs} {op} {rhs}'")
+
+        if op == "+" and compatible_types(lhs, rhs, ["string", "number"]):
+            if lhs.valueType == "string" or rhs.valueType == "string":
+                return ValueAtom("string", str(lhs.value) + str(rhs.value))
+            else:
+                return ValueAtom("number", lhs.value + rhs.value)
+        elif op == "-" and compatible_types(lhs, rhs, ["number"]):
+            return ValueAtom("number", lhs.value - rhs.value)
+        elif op == "*" and compatible_types(lhs, rhs, ["number"]):
+            return ValueAtom("number", lhs.value * rhs.value)
+        elif op == "/" and compatible_types(lhs, rhs, ["number"]):
+            return ValueAtom("number", lhs.value / rhs.value)
+        elif op == "%" and compatible_types(lhs, rhs, ["number"]):
+            return ValueAtom("number", lhs.value % rhs.value)
+        elif op == "==" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
+            return ValueAtom("boolean", lhs.value == rhs.value)
+        elif op == "!=" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
+            return ValueAtom("boolean", lhs.value != rhs.value)
+        elif op == "<" and compatible_types(lhs, rhs, ["number"]):
+            return ValueAtom("boolean", lhs.value < rhs.value)
+        elif op == ">" and compatible_types(lhs, rhs, ["number"]):
+            return ValueAtom("boolean", lhs.value > rhs.value)
+        elif op == "<=" and compatible_types(lhs, rhs, ["number"]):
+            return ValueAtom("boolean", lhs.value <= rhs.value)
+        elif op == ">=" and compatible_types(lhs, rhs, ["number"]):
+            return ValueAtom("boolean", lhs.value >= rhs.value)
+        elif op == "&" and compatible_types(lhs, rhs, ["boolean"]):
+            return ValueAtom("boolean", lhs.value and rhs.value)
+        elif op == "|" and compatible_types(lhs, rhs, ["boolean"]):
+            return ValueAtom("boolean", lhs.value or rhs.value)
         else:
             raise Exception(f"Unknown operator '{expression.operator}'")
 
@@ -60,6 +89,7 @@ def evaluate_function_call(fc: FunctionCallNode, env: Environment) -> Atom:
         # Check that all arguments are of value types, and then map them to their values
         values = []
         for arg in fc.arguments:
+            dprint(f"Evaluating argument '{arg}'")
             argValue = evaluate_expression(arg, env)
             if not isinstance(argValue, ValueAtom):
                 raise Exception(f"Argument '{arg}' does not evaluate to an atomic value")
