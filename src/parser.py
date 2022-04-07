@@ -44,7 +44,7 @@ class BinaryExpressionNode(Node):
     """
     A binary expression node in the abstract syntax tree.
     """
-    def __init__(self, operator, left, right):
+    def __init__(self, operator: str, left: Node, right: Node):
         """
         Initialize a binary expression node with an operator, left and right
         expressions.
