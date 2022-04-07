@@ -22,6 +22,12 @@ class Token():
         self.value = value
         self.line = line
         self.column = column
+    
+    def __str__(self):
+        """
+        Return a string representation of the token.
+        """
+        return f"{self.name}: '{self.value}' at {self.line}:{self.column}"
 
 # Helper functions
 def can_read() -> bool:
