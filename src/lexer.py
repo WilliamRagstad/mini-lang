@@ -30,6 +30,13 @@ class Token():
         return f"{self.name}: '{self.value}' at {self.line}:{self.column}"
 
 # Helper functions
+def dprint(*args):
+    """
+    Print debug messages.
+    """
+    if debug:
+        print(*args)
+
 def can_read() -> bool:
     """
     Check if source can be read.
@@ -46,15 +53,10 @@ def next_char() -> str | None:
     """
     Get the next character from source.
 
-    Parameters
-    ----------
-    source : TextIOBase
-        The source code input text stream.
-
     Returns
     -------
     str
-        The next character.
+        The next character from the source stream.
     """
     global source, line, column
     if not can_read():
@@ -67,14 +69,12 @@ def next_char() -> str | None:
         column += 1
     return c
 
-def read_string(quote: str) -> Token:
+def read_string(quote: str, start: str) -> Token:
     """
     Read a string from source.
 
     Parameters
     ----------
-    source : TextIOBase
-        The source code input text stream.
     quote : str
         The quote character.
 
@@ -83,9 +83,14 @@ def read_string(quote: str) -> Token:
     Token
         A token with the string value.
     """
+    firstChar = True
     s = ""
     while can_read():
-        c = next_char()
+        if firstChar:
+            c = start
+            firstChar = False
+        else:
+            c = next_char()
         if c == quote:
             return Token("String", s)
         elif c == '\\':
@@ -108,23 +113,27 @@ def read_string(quote: str) -> Token:
             s += c
     raise Exception(f"Unexpected end of file")
 
-def read_identifier(start: str) -> Token:
+def read_identifier(start: str, next: str) -> Token:
     """
     Read an identifier from source.
 
     Parameters
     ----------
-    source : TextIOBase
-        The source code input text stream.
     start : str
         The first character of the identifier.
+    next : str
+        The next character in the stream.
 
     Returns
     -------
     Token
         A token with the identifier value.
     """
-    i = start
+    dprint(f"Reading identifier starting with {start}, next: {next}")
+    if not (next.isalnum() or next == '_'):
+        dprint(f"Returning identifier: {start}")
+        return Token("Identifier", start), next
+    i = start + next
     c = None # Next character
     while can_read():
         c = next_char()
@@ -132,6 +141,7 @@ def read_identifier(start: str) -> Token:
             i += c
         else:
             break
+    dprint(f"Identifier: {i}, next char: {c}")
     return Token("Identifier", i), c
 
 def read_number(start: str) -> Token:
@@ -140,8 +150,6 @@ def read_number(start: str) -> Token:
 
     Parameters
     ----------
-    source : TextIOBase
-        The source code input text stream.
     start : str
         The first character of the number.
 
@@ -150,15 +158,15 @@ def read_number(start: str) -> Token:
     Token
         A token with the number value.
     """
-    i = start
+    n = start
     c = None # Next character
     while can_read():
         c = next_char()
         if c.isdigit():
-            i += c
+            n += c
         else:
             break
-    return Token("Number", i), c
+    return Token("Number", float(n)), c
 
 # Lexer function
 def tokenize(_source: TextIOBase, _debug = False) -> list[Token]:
@@ -209,22 +217,19 @@ def tokenize(_source: TextIOBase, _debug = False) -> list[Token]:
         elif c in ['.', ',', ';', ':', '?']:
             tokens.append(Token("Separator", c))
         elif c.isalpha() or c == '_':
-            t, nc = read_identifier(c)
-            if t.value in ['if', 'else', 'while', 'for', 'return', 'break', 'continue', 'true', 'false']:
+            t, nc = read_identifier(c, nc)
+            if t.value in ['if', 'else', 'while', 'for', 'return', 'break', 'continue', 'match', 'case', 'default']:
                 tokens.append(Token("Keyword", t.value))
-            elif t.value in ['int', 'float', 'string', 'bool']:
-                tokens.append(Token("Type", t.value))
-            elif t.value in ['print', 'input']:
-                tokens.append(Token("Builtin", t.value))
             elif t.value in ['true', 'false']:
                 tokens.append(Token("Boolean", t.value == 'true'))
             else:
-                tokens.append(Token("Identifier", t))
+                tokens.append(t)
         elif c in ['"', "'"]:
-            tokens.append(Token("String", read_string(c)))
+            tokens.append(read_string(c, nc))
+            nc = next_char() # Consume the quote
         elif c.isdigit():
-            t, nc = read_number(c)
-            tokens.append(Token("Number", float(t.value)))
+            t, nc = read_number(c, nc)
+            tokens.append(t)
         else:
             raise Exception(f"Unexpected character: {c}")
     if nc != None and nc != '':
