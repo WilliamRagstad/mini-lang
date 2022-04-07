@@ -42,6 +42,10 @@ class ValueAtom(Atom):
         super().__init__("Value", valueType)
         self.valueType = valueType
         self.value = value
+    
+    def __str__(self):
+        value = '"' + str(self.value) + '"' if self.valueType == "string" else str(self.value)
+        return f"<{self.valueType}: {value}>"
 
 class FunctionAtom(Atom):
     """
