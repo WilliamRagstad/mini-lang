@@ -22,3 +22,6 @@ class Environment():
             return self.parent.get(name)
         else:
             return None
+
+    def __str__(self):
+        return f"Environment<{self.name}> {self.values}"
