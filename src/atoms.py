@@ -29,7 +29,7 @@ class UnitAtom(Atom):
         super().__init__("Unit", "unit")
     
     def __str__(self):
-        return f"()"
+        return f"<unit: ()>"
 
 class ValueAtom(Atom):
     """
@@ -59,6 +59,9 @@ class FunctionAtom(Atom):
         self.argumentNames = argumentNames
         self.body = body
         self.environment = environment
+    
+    def __str__(self):
+        return f"<lambda({', '.join(self.argumentNames)})>"
 
 class BuiltinFunctionAtom(Atom):
     """
@@ -71,3 +74,6 @@ class BuiltinFunctionAtom(Atom):
         super().__init__("Built-in function", "function")
         self.functionName = functionName
         self.func = func
+    
+    def __str__(self):
+        return f"<built-in: {self.functionName}>"
