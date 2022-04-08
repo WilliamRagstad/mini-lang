@@ -155,14 +155,20 @@ def read_number(start: str, next: str):
     Token
         A token with the number value.
     """
-    if not next.isdigit():
+    if not (next.isdigit() or next == '.'):
         return Token("Number", float(start)), next
     n = start + next
     c: str = None # Next character
+    haveDecimalPoint = next == '.'
     while can_read():
         c = next_char()
         if c.isdigit():
             n += c
+        elif c == '.':
+            if haveDecimalPoint:
+                raise Exception(f"Unexpected character: {c}")
+            n += c
+            haveDecimalPoint = True
         else:
             break
     return Token("Number", float(n)), c
