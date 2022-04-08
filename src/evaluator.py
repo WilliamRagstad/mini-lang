@@ -127,5 +127,4 @@ def evaluate(program: ProgramNode, env: Environment, _debug = False) -> Atom:
     """
     global debug
     debug = _debug
-    dprint("Evaluating program:")
     return evaluate_expressions(program.expressions, env)
