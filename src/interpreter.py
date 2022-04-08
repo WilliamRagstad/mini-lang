@@ -28,8 +28,7 @@ def execute(input: TextIOBase, env: Environment, debug = False):
         print(ast)
     result = evaluate(ast, env, debug)
     if debug:
-        print("Result:")
-        print(result)
+        print("Result:", result)
     return result, env
 
 # Interpreter mode
