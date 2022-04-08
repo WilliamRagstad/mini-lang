@@ -25,7 +25,7 @@ class ProgramNode(Node):
         super().__init__("Program")
         self.expressions = expressions
 
-class AtomicExpressionNode(Node):
+class AtomicNode(Node):
     """
     An atomic expression node in the abstract syntax tree.
     """

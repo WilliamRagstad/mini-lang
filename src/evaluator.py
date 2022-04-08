@@ -1,6 +1,6 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, UnitAtom, ValueAtom
 from .environment import Environment
-from .parser import AssignmentNode, AtomicExpressionNode, BinaryExpressionNode, FunctionCallNode, Node, ProgramNode
+from .parser import AssignmentNode, AtomicNode, BinaryExpressionNode, FunctionCallNode, LambdaFunctionNode, Node, ProgramNode
 
 # Global variables
 
@@ -28,7 +28,7 @@ def compatible_types(lhs: Atom, rhs: Atom, types: list[str]) -> bool:
         raise Exception(f"Incompatible types: {lhs.valueType} and {rhs.valueType}")
 
 def evaluate_expression(expression: Node, env: Environment) -> Atom:
-    if isinstance(expression, AtomicExpressionNode):
+    if isinstance(expression, AtomicNode):
         if expression.valueType == "Identifier":
             dprint(f"Evaluating identifier '{expression.value}'")
             return env.get(expression.value)
