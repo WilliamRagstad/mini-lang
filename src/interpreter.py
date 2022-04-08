@@ -62,5 +62,8 @@ def repl(debug = False):
             break
         if line == "":
             continue
-        result, env = execute(StringIO(line), env, debug)
-        printValue(result)
+        try:
+            result, env = execute(StringIO(line), env, debug)
+            printValue(result)
+        except Exception as e:
+            print(e)
