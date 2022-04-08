@@ -129,9 +129,7 @@ def read_identifier(start: str, next: str) -> Token:
     Token
         A token with the identifier value.
     """
-    dprint(f"Reading identifier starting with {start}, next: {next}")
     if not (next.isalnum() or next == '_'):
-        dprint(f"Returning identifier: {start}")
         return Token("Identifier", start), next
     i = start + next
     c = None # Next character
@@ -141,7 +139,6 @@ def read_identifier(start: str, next: str) -> Token:
             i += c
         else:
             break
-    dprint(f"Identifier: {i}, next char: {c}")
     return Token("Identifier", i), c
 
 def read_number(start: str, next: str):
@@ -158,9 +155,7 @@ def read_number(start: str, next: str):
     Token
         A token with the number value.
     """
-    dprint(f"Reading number starting with {start}, next: {next}")
     if not next.isdigit():
-        dprint(f"Returning number: {start}")
         return Token("Number", float(start)), next
     n = start + next
     c: str = None # Next character
