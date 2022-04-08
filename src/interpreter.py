@@ -3,13 +3,18 @@ from .lexer import tokenize
 from .parser import parse
 from .evaluator import evaluate
 from .environment import Environment
-from .atoms import BuiltinFunctionAtom
+from .atoms import BuiltinFunctionAtom, UnitAtom, ValueAtom
 
 # Helper functions
 def globalEnvironment():
     env = Environment("global", None)
-    env.set("print", BuiltinFunctionAtom("print", lambda *args: print(*args)))
-    env.set("input", BuiltinFunctionAtom("input", lambda p: input(p)))
+    def _print(*args):
+        print(*args)
+        return UnitAtom()
+    def _input(p):
+        return ValueAtom("string", input(p))
+    env.set("print", BuiltinFunctionAtom("print", _print))
+    env.set("input", BuiltinFunctionAtom("input", _input))
     return env
 
 def execute(input: TextIOBase, env: Environment, debug = False):
