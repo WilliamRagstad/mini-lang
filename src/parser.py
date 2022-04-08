@@ -95,6 +95,24 @@ class FunctionCallNode(Node):
         super().__init__("FunctionCall")
         self.functionName = functionName
         self.arguments = arguments
+    
+    def __str__(self):
+        return f"{self.name} {self.functionName}({', '.join(str(a) for a in self.arguments)})"
+
+class LambdaFunctionNode(Node):
+    """
+    A lambda function node in the abstract syntax tree.
+    """
+    def __init__(self, params: list[str], body: Node):
+        """
+        Initialize a lambda function node with a list of parameters and a body.
+        """
+        super().__init__("LambdaFunction")
+        self.params = params
+        self.body = body
+    
+    def __str__(self):
+        return f"{self.name} ({self.params} -> {self.body})"
 
 # Global variables
 tokens: list[Token] = []
@@ -117,23 +135,24 @@ def parse_expression() -> Node:
     if t.name == "Identifier":
         if len(tokens) == 0:
             dprint(f"Found identifier '{t.value}'")
-            return AtomicExpressionNode("Identifier", t.value)
+            return AtomicNode("Identifier", t.value)
         nt = tokens[0]
         if nt.name == 'Bracket' and nt.value == '(':
             tokens.pop(0) # Remove the opening bracket
             lhs = parse_function_call(t.value)
         elif nt.name == 'AssignmentOperator':
             tokens.pop(0) # Remove the assignment operator
-            lhs = AssignmentNode(
-                t.value,
-                parse_expression()
-            )
+            rhs = parse_expression()
+            lhs = AssignmentNode(t.value, rhs)
+            dprint(f"Found assignment '{t.value}' = {rhs}")
         else:
             dprint(f"Found identifier '{t.value}'")
-            lhs = AtomicExpressionNode("Identifier", t.value)
+            lhs = AtomicNode("Identifier", t.value)
     elif t.name in ["String", "Number", "Boolean"]:
         dprint(f"Found {t.name} '{t.value}'")
-        return AtomicExpressionNode(t.name.lower(), t.value)
+        return AtomicNode(t.name.lower(), t.value)
+    elif t.name == "Keyword":
+        raise Exception(f"Keyword '{t.value}' is not implemented!")
     elif t.name == "Bracket" and t.value == '(':
         dprint("Found tuple")
         lhs = parse_tuple()

@@ -42,6 +42,8 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         return value
     elif isinstance(expression, FunctionCallNode):
         return evaluate_function_call(expression, env)
+    elif isinstance(expression, LambdaFunctionNode):
+        return FunctionAtom(expression.params, expression.body, env)
     elif isinstance(expression, BinaryExpressionNode):
         op = expression.operator
         lhs = evaluate_expression(expression.left, env)
@@ -98,12 +100,12 @@ def evaluate_function_call(fc: FunctionCallNode, env: Environment) -> Atom:
     elif isinstance(funcVal, FunctionAtom):
         # Build a new environment for the function call
         # where the arguments are bound to the parameters
-        funcEnv = Environment(f"<function {fc.functionName}>", funcVal.env)
-        if len(fc.arguments) != len(funcVal.argNames):
-            raise Exception(f"Function '{fc.functionName}' expects {len(funcVal.argNames)} arguments, but got {len(fc.arguments)}")
-        for name, exp in zip(funcVal.argNames, fc.arguments):
+        funcEnv = Environment(f"<function {fc.functionName}>", funcVal.environment)
+        if len(fc.arguments) != len(funcVal.argumentNames):
+            raise Exception(f"Function '{fc.functionName}' expects {len(funcVal.argumentNames)} arguments, but got {len(fc.arguments)}")
+        for name, exp in zip(funcVal.argumentNames, fc.arguments):
             funcEnv.set(name, evaluate_expression(exp, env))
-        return evaluate_expressions(funcVal.body, funcEnv)
+        return evaluate_expression(funcVal.body, funcEnv)
     else:
         raise Exception(f"The variable '{fc.functionName}' is not a function")
 

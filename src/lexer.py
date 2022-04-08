@@ -213,7 +213,11 @@ def tokenize(_source: TextIOBase, _debug = False) -> list[Token]:
                 tokens.append(Token("ComparisonOperator", c + nc))
                 nc = next_char() # Consume the equal sign
             elif c == '=':
-                tokens.append(Token("AssignmentOperator", c))
+                if nc == '>':
+                    tokens.append(Token("RightArrow", c + nc))
+                    nc = next_char()
+                else:
+                    tokens.append(Token("AssignmentOperator", c))
             else:
                 tokens.append(Token("LogicalOperator", c))
         elif c in ['(', ')', '{', '}', '[', ']']:
