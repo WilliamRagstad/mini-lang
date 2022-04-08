@@ -150,7 +150,7 @@ def parse_expression() -> Node:
             lhs = AtomicNode("Identifier", t.value)
     elif t.name in ["String", "Number", "Boolean"]:
         dprint(f"Found {t.name} '{t.value}'")
-        return AtomicNode(t.name.lower(), t.value)
+        lhs = AtomicNode(t.name.lower(), t.value)
     elif t.name == "Keyword":
         raise Exception(f"Keyword '{t.value}' is not implemented!")
     elif t.name == "Bracket" and t.value == '(':
