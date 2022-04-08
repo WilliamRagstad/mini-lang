@@ -69,6 +69,22 @@ class AssignmentNode(Node):
     def __str__(self):
         return f"{self.name} {self.identifier} = {self.expression}"
 
+class UnaryNode(Node):
+    """
+    A unary node in the abstract syntax tree.
+    """
+    def __init__(self, operator: str, rhs: Node):
+        """
+        Initialize a unary expression node with an operator and a right
+        expression.
+        """
+        super().__init__("UnaryExpression")
+        self.operator = operator
+        self.rhs = rhs
+    
+    def __str__(self):
+        return f"{self.name} {self.operator}({self.rhs})"
+
 class BinaryNode(Node):
     """
     A binary expression node in the abstract syntax tree.
@@ -174,6 +190,10 @@ def parse_expression() -> Node:
                 dprint("Found lambda expression")
                 body = parse_expression()
                 lhs = LambdaFunctionNode(argumentNames, body)
+    elif t.name.endswith("Operator") and t.value in ["-", "!"]:
+        dprint("Found unary operator")
+        rhs = parse_expression()
+        lhs = UnaryNode(t.value, rhs)
     else:
         raise Exception(f"Unexpected {t.name} token: '{t.value}'")
     

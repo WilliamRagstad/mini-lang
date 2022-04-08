@@ -1,6 +1,6 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, UnitAtom, ValueAtom
 from .environment import Environment
-from .parser import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, Node, ProgramNode
+from .parser import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, Node, ProgramNode, UnaryNode
 
 # Global variables
 
@@ -27,6 +27,17 @@ def compatible_types(lhs: Atom, rhs: Atom, types: list[str]) -> bool:
     else:
         raise Exception(f"Incompatible types: {lhs.valueType} and {rhs.valueType}")
 
+def compatible_type(value: Atom, types: list[str]) -> bool:
+    """
+    Check if the given value is compatible with the given types.
+    """
+    if not isinstance(value, ValueAtom):
+        raise Exception(f"Value is not an atomic value")
+    if value.valueType in types:
+        return True
+    else:
+        raise Exception(f"Incompatible types: {value.valueType} and {types}")
+
 def evaluate_expression(expression: Node, env: Environment) -> Atom:
     if isinstance(expression, AtomicNode):
         if expression.valueType == "Identifier":
@@ -47,6 +58,15 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         return evaluate_function_call(expression, env)
     elif isinstance(expression, LambdaFunctionNode):
         return FunctionAtom(expression.params, expression.body, env)
+    elif isinstance(expression, UnaryNode):
+        op = expression.operator
+        rhs = evaluate_expression(expression.rhs, env)
+        if op == "-" and compatible_type(rhs, ["number"]):
+            return ValueAtom("number", -rhs.value)
+        elif op == "!" and compatible_type(rhs, ["boolean"]):
+            return ValueAtom("boolean", not rhs.value)
+        else:
+            raise Exception(f"Unkown unary operator '{op}'")
     elif isinstance(expression, BinaryNode):
         op = expression.operator
         lhs = evaluate_expression(expression.left, env)
@@ -83,7 +103,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         elif op == "|" and compatible_types(lhs, rhs, ["boolean"]):
             return ValueAtom("boolean", lhs.value or rhs.value)
         else:
-            raise Exception(f"Unknown operator '{expression.operator}'")
+            raise Exception(f"Unknown binary operator '{expression.operator}'")
     else:
         raise Exception(f"Unknown expression type '{type(expression)}'")
 
