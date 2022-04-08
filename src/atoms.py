@@ -18,19 +18,6 @@ class Atom():
     def __str__(self):
         return f"<{self.type}>"
 
-class UnitAtom(Atom):
-    """
-    A unit atom in the language.
-    """
-    def __init__(self):
-        """
-        Initialize a unit atom.
-        """
-        super().__init__("Unit", "unit")
-    
-    def __str__(self):
-        return f"<unit: ()>"
-
 class ValueAtom(Atom):
     """
     An atomic value node in the abstract syntax tree.
@@ -46,6 +33,30 @@ class ValueAtom(Atom):
     def __str__(self):
         value = '"' + str(self.value) + '"' if self.valueType == "string" else str(self.value)
         return f"<{self.valueType}: {value}>"
+
+class TupleAtom(ValueAtom):
+    """
+    A tuple node in the abstract syntax tree.
+    """
+    def __init__(self, elements: list):
+        """
+        Initialize a tuple node with a list of elements.
+        """
+        super().__init__("tuple", elements)
+    
+    def __str__(self):
+        return f'<{self.valueType}: (' + ", ".join(str(e) for e in self.value) + ')>'
+
+class UnitAtom(TupleAtom):
+    """
+    A unit atom in the language.
+    """
+    def __init__(self):
+        """
+        Initialize a unit atom.
+        """
+        super().__init__([])
+        self.valueType = "unit"
 
 class FunctionAtom(Atom):
     """
