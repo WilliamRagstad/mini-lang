@@ -25,7 +25,7 @@ def execute(input: TextIOBase, env: Environment, debug = False):
     ast = parse(tokens, debug)
     if debug:
         print("AST:")
-        print(ast)
+        print('    ' + '\n    '.join(str(e) for e in ast.expressions))
     result = evaluate(ast, env, debug)
     if debug:
         print("Result:", result)
