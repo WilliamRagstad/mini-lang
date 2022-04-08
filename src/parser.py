@@ -69,7 +69,7 @@ class AssignmentNode(Node):
     def __str__(self):
         return f"{self.name} {self.identifier} = {self.expression}"
 
-class BinaryExpressionNode(Node):
+class BinaryNode(Node):
     """
     A binary expression node in the abstract syntax tree.
     """
@@ -187,7 +187,7 @@ def parse_expression() -> Node:
         if t.name.endswith("Operator"):
             tokens.pop(0) # Remove the operator token
             rhs = parse_expression()
-            lhs = BinaryExpressionNode(t.value, lhs, rhs)
+            lhs = BinaryNode(t.value, lhs, rhs)
         else:
             break
 

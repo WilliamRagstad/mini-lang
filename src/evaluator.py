@@ -1,6 +1,6 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, UnitAtom, ValueAtom
 from .environment import Environment
-from .parser import AssignmentNode, AtomicNode, BinaryExpressionNode, FunctionCallNode, LambdaFunctionNode, Node, ProgramNode
+from .parser import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, Node, ProgramNode
 
 # Global variables
 
@@ -44,7 +44,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         return evaluate_function_call(expression, env)
     elif isinstance(expression, LambdaFunctionNode):
         return FunctionAtom(expression.params, expression.body, env)
-    elif isinstance(expression, BinaryExpressionNode):
+    elif isinstance(expression, BinaryNode):
         op = expression.operator
         lhs = evaluate_expression(expression.left, env)
         rhs = evaluate_expression(expression.right, env)
