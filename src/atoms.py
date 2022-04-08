@@ -1,7 +1,6 @@
 # Fundamental value types in the language
 from typing import Callable
 
-from .environment import Environment
 from .parser import Node
 
 class Atom():
@@ -62,7 +61,7 @@ class FunctionAtom(Atom):
     """
     A function node in the abstract syntax tree.
     """
-    def __init__(self, argumentNames: list[str], body: Node, environment: Environment):
+    def __init__(self, argumentNames: list[str], body: Node, environment):
         """
         Initialize a function node with a function name, argument names, body and the environment in which it was defined.
         """
