@@ -1,6 +1,7 @@
-from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, UnitAtom, ValueAtom
+from cmath import exp
+from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, TupleAtom, UnitAtom, ValueAtom
 from .environment import Environment
-from .parser import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, Node, ProgramNode, UnaryNode
+from .parser import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, Node, ProgramNode, TupleNode, UnaryNode
 
 # Global variables
 
@@ -48,6 +49,13 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             return val
         else:
             return ValueAtom(expression.valueType, expression.value)
+    elif isinstance(expression, TupleNode):
+        if len(expression.elements) == 0:
+            return UnitAtom()
+        elif len(expression.elements) == 1:
+            return evaluate_expression(expression.elements[0], env)
+        else:
+            return TupleAtom(list(map(lambda e: evaluate_expression(e, env), expression.elements)))
     elif isinstance(expression, AssignmentNode):
         dprint(f"Evaluating assignment {expression.identifier} = {expression.expression}")
         value = evaluate_expression(expression.expression, env)
