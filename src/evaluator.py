@@ -81,6 +81,8 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             return ValueAtom("boolean", lhs.value or rhs.value)
         else:
             raise Exception(f"Unknown operator '{expression.operator}'")
+    else:
+        raise Exception(f"Unknown expression type '{type(expression)}'")
 
 def evaluate_function_call(fc: FunctionCallNode, env: Environment) -> Atom:
     funcVal = env.get(fc.functionName)
