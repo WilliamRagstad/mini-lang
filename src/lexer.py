@@ -161,7 +161,7 @@ def read_number(start: str, next: str):
     dprint(f"Reading number starting with {start}, next: {next}")
     if not next.isdigit():
         dprint(f"Returning number: {start}")
-        return Token("Number", start), next
+        return Token("Number", float(start)), next
     n = start + next
     c: str = None # Next character
     while can_read():
