@@ -51,6 +51,7 @@ def interpret(filepath: str, debug = False):
 
 # Repl mode
 def repl(debug = False):
+    print("Welcome to the mini interpreter!")
     env = globalEnvironment()
     while True:
         try:
