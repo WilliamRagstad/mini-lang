@@ -31,7 +31,10 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
     if isinstance(expression, AtomicNode):
         if expression.valueType == "Identifier":
             dprint(f"Evaluating identifier '{expression.value}'")
-            return env.get(expression.value)
+            val = env.get(expression.value)
+            if val is None:
+                raise Exception(f"Identifier '{expression.value}' is not defined")
+            return val
         else:
             return ValueAtom(expression.valueType, expression.value)
     elif isinstance(expression, AssignmentNode):
