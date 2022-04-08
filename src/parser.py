@@ -40,6 +40,20 @@ class AtomicExpressionNode(Node):
     def __str__(self):
         return f"{self.name} {self.valueType}({self.value})"
 
+class TupleNode(Node):
+    """
+    A tuple node in the abstract syntax tree.
+    """
+    def __init__(self, elements):
+        """
+        Initialize a tuple node with a list of elements.
+        """
+        super().__init__("Tuple")
+        self.elements = elements
+    
+    def __str__(self):
+        return '(' + ", ".join(str(e) for e in self.elements) + ')'
+
 class AssignmentNode(Node):
     """
     An assignment node in the abstract syntax tree.
@@ -120,6 +134,25 @@ def parse_expression() -> Node:
     elif t.name in ["String", "Number", "Boolean"]:
         dprint(f"Found {t.name} '{t.value}'")
         return AtomicExpressionNode(t.name.lower(), t.value)
+    elif t.name == "Bracket" and t.value == '(':
+        dprint("Found tuple")
+        lhs = parse_tuple()
+        # Check for trailing right arrow
+        if len(tokens) > 0:
+            t = tokens[0]
+            if t.name == "RightArrow":
+                tokens.pop(0) # Remove the arrow
+                # Validate so that the tuple is only identifiers
+                argumentNames = []
+                for e in lhs.elements:
+                    if not (isinstance(e, AtomicNode) or e.name == "Identifier"):
+                        raise Exception(f"Tuple argument '{e}' is not an identifier!")
+                    argumentNames.append(e.value)
+
+                # Parse lambda expression
+                dprint("Found lambda expression")
+                body = parse_expression()
+                lhs = LambdaFunctionNode(argumentNames, body)
     else:
         raise Exception(f"Unexpected {t.name} token: '{t.value}'")
     
@@ -138,6 +171,39 @@ def parse_expression() -> Node:
             break
 
     return lhs
+
+def parse_tuple() -> TupleNode:
+    """
+    Parse a tuple from a list of tokens.
+    """
+    # The previous token should have been the opening bracket
+    elements: list[Node] = []
+    expectExpression = False
+    while len(tokens) > 0:
+        t = tokens[0]
+        if t.name == "Bracket" and t.value == ')':
+            if expectExpression:
+                raise Exception(f"Expected expression but found '{t.value}'")
+            tokens.pop(0) # Remove the closing bracket
+            break
+        elements.append(parse_expression())
+        # parse comma
+        if len(tokens) == 0:
+            raise Exception("Expected ')' but found end of file")
+        t = tokens[0]
+        # Check that it is a comman and expect another expression if so
+        if t.name == "Separator" and t.value == ',':
+            tokens.pop(0) # Remove the comma
+            expectExpression = True
+        else:
+            expectExpression = False
+
+    # if len(elements) == 0:
+    #     return UnitNode()
+    # if len(elements) == 1:
+    #    return elements[0]
+    # Leave this logic to the evaluator
+    return TupleNode(elements)
 
 def parse_function_call(functionName: str) -> FunctionCallNode:
     """
