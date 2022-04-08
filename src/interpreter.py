@@ -3,7 +3,7 @@ from .lexer import tokenize
 from .parser import parse
 from .evaluator import evaluate
 from .environment import Environment
-from .atoms import BuiltinFunctionAtom, UnitAtom, ValueAtom
+from .atoms import Atom, BuiltinFunctionAtom, UnitAtom, ValueAtom
 
 # Helper functions
 def globalEnvironment():
@@ -31,6 +31,19 @@ def execute(input: TextIOBase, env: Environment, debug = False):
         print("Result:", result)
     return result, env
 
+def printValue(value: Atom):
+    if value is None or isinstance(value, UnitAtom):
+        return
+    if isinstance(value, ValueAtom):
+        if value.valueType == "string":
+            print(f"'{value.value}'")
+        elif value.valueType == "number":
+            print(int(value.value) if value.value.is_integer() else value.value)
+        else:
+            print(value.value)
+    else:
+        print(value)
+
 # Interpreter mode
 def interpret(filepath: str, debug = False):
     with open(filepath, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True) as f:
@@ -44,8 +57,9 @@ def repl(debug = False):
             line = input("> ").strip()
         except EOFError:
             continue
+        except KeyboardInterrupt:
+            break
         if line == "":
             continue
-        result = execute(StringIO(line), env, debug)
-        if result is not None:
-            print(result)
+        result, env = execute(StringIO(line), env, debug)
+        printValue(result)
