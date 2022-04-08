@@ -65,6 +65,9 @@ class AssignmentNode(Node):
         super().__init__("Assignment")
         self.identifier = identifier
         self.expression = expression
+    
+    def __str__(self):
+        return f"{self.name} {self.identifier} = {self.expression}"
 
 class BinaryExpressionNode(Node):
     """
@@ -112,7 +115,7 @@ class LambdaFunctionNode(Node):
         self.body = body
     
     def __str__(self):
-        return f"{self.name} ({self.params} -> {self.body})"
+        return f"{self.name} ({self.params} => {self.body})"
 
 # Global variables
 tokens: list[Token] = []
