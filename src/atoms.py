@@ -29,12 +29,19 @@ class ValueAtom(Atom):
         self.valueType = valueType
         self.value = value
     
-    def __str__(self):
+    def __str__(self) -> str:
+        value = str(self.value)
         if self.valueType == "string":
-            return f"'{self.value}'"
+            return f"'{value}'"
         elif self.valueType == "boolean":
-            return self.value.lower()
-        return str(self.value)
+            return value.lower()
+        return value
+
+    def __repr__(self) -> str:
+        value = str(self.value)
+        if self.valueType == "boolean":
+            return value.lower()
+        return value
 
 class TupleAtom(ValueAtom):
     """
