@@ -33,28 +33,18 @@ The syntax of `mini` is similar to the [ECMAScript specification](https://tc39.e
 
 There are three primitive data types in `mini`:
 * `number` - Represents both floating point and integer numbers
-* `boolean` - Represents logical `true` or `false` value
+    * Arithmetic operators: `+`, `-`, `*`, `/`, `%` (modulo)
+    * Comparison operators: `==`, `!=`, `<`, `<=`, `>`, `>=`
+    * Examples: `21`, `4.2`, `-3`, `-3.5`
+* `boolean` - Represents logical `true` or `false`
+    * Logical operators: `&` (and), `|` (or), `!` (not)
+    * Comparison operators: `==`
+    * Examples: `true`, `false`
 * `string` - Represents a sequence of characters, or a single character
+    * Arithmetic operators: `+` (concatenation)
+    * Comparison operators: `==`, `!=`
+    * Examples: `"hello"`, `'world'`, `"a"`, `'b'`
 
-There are built-in operators for each of these types.
-
-```js
-string + string
-number + number
-number - number
-number * number
-number / number
-number % number
-number == number
-number != number
-number < number
-number <= number
-number > number
-number >= number
-boolean & boolean
-boolean | boolean
-!boolean
-```
 
 ### Variable declaration
 A variable declaration is the same as an assignment, but if the variable is not already declared, it is automatically declared.
@@ -73,4 +63,19 @@ Or multiple variables can be declared with different values on a single line, mu
 
 ```js
 x = 10  y = 20  z = 30
+```
+
+### Lambda expressions
+
+Lambdas are declared with the `=>` operator.
+
+```js
+(x, y) => x + y
+```
+
+Functions can be declared by assigning a lambda expression to a variable.
+
+```js
+add = (x, y) => x + y
+add(1, 2)
 ```
