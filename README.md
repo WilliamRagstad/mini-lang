@@ -146,7 +146,8 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
         * `map.entries()` - Returns a new list with the key-value pairs in the map
 * `set` - A disorderly collection of unique values.
     * Examples:
-        * `set(1, 2, 3)` 
+        * `set(1, 2, 3)` - Initialize a set with three unique values.
+        * `set()` - The empty set.
     * `set.length` - The number of values in the set
     * `set.has(value)` - Returns `true` if the set contains the given value
     * `set.add(value)` - Adds the given value to the set
