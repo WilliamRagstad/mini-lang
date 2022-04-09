@@ -95,36 +95,58 @@ Empty parameter-list lambdas can be declared with an empty tuple. Used for gener
 () => 42
 ```
 
+It is also possible to write immediately invoked function expressions (IIFE) that runs as soon as it is defined.
+
+```js
+(() => "IIFE")()
+```
+
 ### Collection data structures
 
 Primitive data types are useful, but limiting on their own. `mini` has a number of data structures that can be used to store and manipulate collections of data.
-* `list` - A collection of values, where each value can be accessed by index.
-    * `list.length` - The number of values in the list
-    * `list[index]` - The value at the given index
-    * `list.push(value)` - Adds a value to the end of the list
-    * `list.pop()` - Removes and returns the last value in the list
-    * `list.unshift(value)` - Adds a value to the beginning of the list
-    * `list.shift()` - Removes and returns the first value in the list
-    * `list.splice(start, deleteCount, ...values)` - Removes values from the list and returns them
-    * `list.map(fn)` - Returns a new list with the values transformed by the given function
-    * `list.filter(fn)` - Returns a new list with the values filtered by the given function
-    * `list.reduce(fn, initialValue)` - Returns a single value by combining the values in the list
-    * `list.indexOf(value)` - Returns the index of the given value, or `-1` if the value is not in the list
-    * `list.lastIndexOf(value)` - Returns the index of the last given value, or `-1` if the value is not in the list
-    * `list.join(separator)` - Returns a string with the values in the list separated by the given separator
-    * `list.concat(...lists)` - Returns a new list with the values from the given lists
-* `tuple` - A collection of values, where each value can be accessed by index.
-    * `tuple.length` - The number of values in the tuple
-    * `tuple[index]` - The value at the given index
-* `map` - A collection of key-value pairs, where each key can be accessed by index.
-    * `map[key]` - The value associated with the given key
-    * `map.has(key)` - Returns `true` if the map contains the given key
-    * `map.delete(key)` - Removes the value associated with the given key
-    * `map.clear()` - Removes all key-value pairs from the map
-    * `map.keys()` - Returns a new list with the keys in the map
-    * `map.values()` - Returns a new list with the values in the map
-    * `map.entries()` - Returns a new list with the key-value pairs in the map
-* `set` - A collection of unique values.
+* `list` - An ordered collection of values, where each value can be accessed by index. Elements are stored in the order they are declared.
+    * Examples:
+        * `[1, 2, 3]` - A list of three integers
+        * `[true, false, 'hello', 'world']` - Mixed types
+        * `[]` - An empty list
+    * Methods:
+        * `list.length` - The number of values in the list
+        * `list[index]` - The value at the given index
+        * `list.push(value)` - Adds a value to the end of the list
+        * `list.pop()` - Removes and returns the last value in the list
+        * `list.unshift(value)` - Adds a value to the beginning of the list
+        * `list.shift()` - Removes and returns the first value in the list
+        * `list.splice(start, deleteCount, ...values)` - Removes values from the list and returns them
+        * `list.map(fn)` - Returns a new list with the values transformed by the given function
+        * `list.filter(fn)` - Returns a new list with the values filtered by the given function
+        * `list.reduce(fn, initialValue)` - Returns a single value by combining the values in the list
+        * `list.indexOf(value)` - Returns the index of the given value, or `-1` if the value is not in the list
+        * `list.lastIndexOf(value)` - Returns the index of the last given value, or `-1` if the value is not in the list
+        * `list.join(separator)` - Returns a string with the values in the list separated by the given separator
+        * `list.concat(...lists)` - Returns a new list with the values from the given lists
+* `tuple` - An ordered collection of values, where each value can be accessed by index.
+    * Examples:
+        * `(1, 2, 3)` - A tuple of three integers
+        * `('hello', 'world')` - A tuple of two strings
+        * `()` - An empty tuple, or `unit`. **This should be treated the same as `null` in other languages.**
+    * Methods:
+        * `tuple.length` - The number of values in the tuple
+        * `tuple[index]` - The value at the given index
+* `map` - A disorderly collection of key-value pairs, where each key can be accessed by index.
+    * Examples:
+        * `#{'a': 1, 'b': 2, 'c': 3}` - A map of three key-value pairs
+        * `#{}` - An empty map
+    * Methods:
+        * `map[key]` - The value associated with the given key
+        * `map.has(key)` - Returns `true` if the map contains the given key
+        * `map.delete(key)` - Removes the value associated with the given key
+        * `map.clear()` - Removes all key-value pairs from the map
+        * `map.keys()` - Returns a new list with the keys in the map
+        * `map.values()` - Returns a new list with the values in the map
+        * `map.entries()` - Returns a new list with the key-value pairs in the map
+* `set` - A disorderly collection of unique values.
+    * Examples:
+        * `set(1, 2, 3)` 
     * `set.length` - The number of values in the set
     * `set.has(value)` - Returns `true` if the set contains the given value
     * `set.add(value)` - Adds the given value to the set
@@ -224,6 +246,8 @@ match x
     2 => "two"
     _ => "many"
 ```
+
+One could think of match as many `if x is p` statements combined into a single statement.
 
 ### Other keywords and operators
 
