@@ -18,12 +18,20 @@ This is the repository for the example programming language `mini` built for the
 `mini` is a minmal programming language that is built for the purpose of teaching programming language design.
 It is not intended to be a full language, but rather a language that can be expanded upon and explore new and more advanced concepts in language design.
 
-The language is expression-based, and is designed to be easy to learn and use.
-It has support for:
+The language is expression-based, and is designed to be easy to learn and use. There are support for both functional and object oriented programming paradigms.
+
+## Features
+
+The language has a rich set of features, including:
+
 * Basic arithmetic, logic, and comparison operators
 * Primitive data types such as `number`, `boolean`, and `string`
 * Lambda expressions and functions
-* Basic control structures
+* Collection data structures like `list`, `tuple`, `map`, and `set`
+* Enum types
+* A set of built-in functions
+* Basic control flow structures
+* Other keywords and operators
 
 ## Specification
 
@@ -85,4 +93,208 @@ Empty parameter-list lambdas can be declared with an empty tuple. Used for gener
 
 ```js
 () => 42
+```
+
+### Collection data structures
+
+Primitive data types are useful, but limiting on their own. `mini` has a number of data structures that can be used to store and manipulate collections of data.
+* `list` - A collection of values, where each value can be accessed by index.
+    * `list.length` - The number of values in the list
+    * `list[index]` - The value at the given index
+    * `list.push(value)` - Adds a value to the end of the list
+    * `list.pop()` - Removes and returns the last value in the list
+    * `list.unshift(value)` - Adds a value to the beginning of the list
+    * `list.shift()` - Removes and returns the first value in the list
+    * `list.splice(start, deleteCount, ...values)` - Removes values from the list and returns them
+    * `list.map(fn)` - Returns a new list with the values transformed by the given function
+    * `list.filter(fn)` - Returns a new list with the values filtered by the given function
+    * `list.reduce(fn, initialValue)` - Returns a single value by combining the values in the list
+    * `list.indexOf(value)` - Returns the index of the given value, or `-1` if the value is not in the list
+    * `list.lastIndexOf(value)` - Returns the index of the last given value, or `-1` if the value is not in the list
+    * `list.join(separator)` - Returns a string with the values in the list separated by the given separator
+    * `list.concat(...lists)` - Returns a new list with the values from the given lists
+* `tuple` - A collection of values, where each value can be accessed by index.
+    * `tuple.length` - The number of values in the tuple
+    * `tuple[index]` - The value at the given index
+* `map` - A collection of key-value pairs, where each key can be accessed by index.
+    * `map[key]` - The value associated with the given key
+    * `map.has(key)` - Returns `true` if the map contains the given key
+    * `map.delete(key)` - Removes the value associated with the given key
+    * `map.clear()` - Removes all key-value pairs from the map
+    * `map.keys()` - Returns a new list with the keys in the map
+    * `map.values()` - Returns a new list with the values in the map
+    * `map.entries()` - Returns a new list with the key-value pairs in the map
+* `set` - A collection of unique values.
+    * `set.length` - The number of values in the set
+    * `set.has(value)` - Returns `true` if the set contains the given value
+    * `set.add(value)` - Adds the given value to the set
+    * `set.delete(value)` - Removes the given value from the set
+    * `set.clear()` - Removes all values from the set
+    * `set.values()` - Returns a new list with the values in the set
+
+### Enums
+
+`mini` supports Rust-like enums.
+
+```ts
+enum Optional<T> {
+    Some(T),
+    None
+}
+```
+
+### Built-in functions
+
+There are a number of built-in functions that can be used in `mini`:
+* `print` - Prints a string to the console
+    * Examples:
+        * `print('hello')`
+        * `print("hello", "world")`
+        * `print(1, 2, 3)`
+* `input` - Gets a string from the console
+    * Examples:
+        * `input()`
+        * `input("Enter your name: ")`
+
+### Control flow structures
+
+There are three control flow structures in `mini`:
+* `if` - If-then-else statement
+* `match` - Pattern matching statement
+* `for` - For-loop
+* `while` - While-loop
+* `break` - Break out of a loop
+* `continue` - Continue to the next iteration of a loop
+* `return` - Return from a function, last expression in a block is implicitly returned
+
+Below are examples of each control flow structure.
+
+> **`if` statement**
+>
+> The `if` statement is used to execute and return the value of a block of code or a single expression if a condition guard is true.
+
+The guard is an expression directly following the `if` keyword, surrounding parentheses are optional. After that, a block of code or a single expression is specified.
+
+```js
+if x == 1 "one"
+```
+
+The example above returns the string `"one"` if the condition `x == 1` is true.
+
+```js
+if x % 2 == 0 {
+    x *= 2
+    return x + 1
+}
+```
+
+The example above returns the value of `x * 2 + 1` if `x` is even.
+
+If statements also has the power to pattern match on values using the `is` operator.
+
+> **`if-else` statement**
+>
+> The `if-else` statement is used to execute and return the value of different blocks of code or single expressions depending on the value of a condition guard.
+
+The code below is a short implementation of the absolute value function `|x|`.
+
+```js
+if x > 0 x
+else -x
+```
+
+> **`else if` statement**
+>
+> The `else if` statements can be used to add additional conditions to an `if-else` statement.
+
+```js
+if x >= 10 "ten or more"
+else if x >= 5 "five or more"
+else if x >= 1 "one or more"
+else "none"
+```
+
+> **`match` statement**
+>
+> The `match` statement matches a value against a set of patterns, and returns the value of the first pattern that matches.
+
+```js
+match x
+    1 => "one"
+    2 => "two"
+    _ => "many"
+```
+
+### Other keywords and operators
+
+Other than the operators and keywords listed above, there are a number of other keywords and operators that can be used in `mini`.
+* `is` - Used to match values against patterns and bind them to variables
+* `in` - Used to check if a value is in a set of values
+
+> **`is` keyword**
+>
+> The `is` keyword is used to match values against patterns and bind them to variables.
+
+Use `is` in an if-else statement to pattern match on values and change the control flow of the program depending on the match result.
+
+```ts
+if x is number "number"
+else if x is string "string"
+else if x is boolean "boolean"
+else "unknown"
+```
+
+Or more specifically, get the type of the value and bind it to a variable.
+
+```ts
+if x is number(n) "number: " + n
+else if x is string(s) "string: " + s
+else if x is boolean(b) "boolean: " + b
+else "unknown: " + x
+```
+
+Can be used to handle optional values.
+
+```ts
+if x is Some(v) "some: " + v
+else "none"
+```
+
+Or match on data types.
+
+```ts
+if l is [head | tail] "list: " + head + " " + tail
+else 
+```
+
+> **`in` keyword**
+>
+> The `in` keyword is used to check if a value is in a set of values.
+
+Check if a value is in a list.
+
+```ts
+if x in [1, 2, 3] "in list"
+else "not in list"
+```
+
+Check if a value is in a range.
+
+```ts
+if x in 1..10 "in range"
+else "not in range"
+```
+
+Check if value is a key in a map. If `x` would be `2` for example, `x` would be in the map and the condition would be true.
+
+```ts
+if x in {1: "one", 2: "two", 3: "three"} "in map"
+else "not in map"
+```
+
+Check if a value is in a tuple.
+
+```ts
+if x in (1, 2, 3) "in tuple"
+else "not in tuple"
 ```
