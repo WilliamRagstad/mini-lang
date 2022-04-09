@@ -68,6 +68,7 @@ x = 10  y = 20  z = 30
 ### Lambda expressions
 
 Lambdas are declared with the `=>` operator.
+The left hand side of the `=>` is the parameter-list tuple, and the right hand side is the function body (A single expression or block).
 
 ```js
 (x, y) => x + y
@@ -78,4 +79,10 @@ Functions can be declared by assigning a lambda expression to a variable.
 ```js
 add = (x, y) => x + y
 add(1, 2)
+```
+
+Empty parameter-list lambdas can be declared with an empty tuple. Used for generator and supplier functions.
+
+```js
+() => 42
 ```
