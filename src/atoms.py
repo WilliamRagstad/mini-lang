@@ -30,8 +30,11 @@ class ValueAtom(Atom):
         self.value = value
     
     def __str__(self):
-        value = '"' + str(self.value) + '"' if self.valueType == "string" else str(self.value)
-        return f"<{self.valueType}: {value}>"
+        if self.valueType == "string":
+            return f"'{self.value}'"
+        elif self.valueType == "boolean":
+            return self.value.lower()
+        return str(self.value)
 
 class TupleAtom(ValueAtom):
     """
@@ -44,7 +47,7 @@ class TupleAtom(ValueAtom):
         super().__init__("tuple", elements)
     
     def __str__(self):
-        return f'<{self.valueType}: (' + ", ".join(str(e) for e in self.value) + ')>'
+        return f'(' + ", ".join(str(e) for e in self.value) + ')'
 
 class UnitAtom(TupleAtom):
     """
