@@ -128,7 +128,7 @@ def evaluate_function_call(fc: FunctionCallNode, env: Environment) -> Atom:
             argValue = evaluate_expression(arg, env)
             if not isinstance(argValue, ValueAtom):
                 raise Exception(f"Argument '{arg}' does not evaluate to an atomic value")
-            values.append(argValue.value)
+            values.append(repr(argValue))
         return funcVal.func(*values)
     elif isinstance(funcVal, FunctionAtom):
         # Build a new environment for the function call

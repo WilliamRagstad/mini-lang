@@ -31,26 +31,6 @@ def execute(input: TextIOBase, env: Environment, debug = False):
         print("Result:", result)
     return result, env
 
-def printValue(value: Atom, end = "\n"):
-    if value is None or isinstance(value, UnitAtom):
-        return
-    elif isinstance(value, TupleAtom):
-        print("(", end="")
-        for i in range(len(value.value)):
-            printValue(value.value[i], '')
-            if i < len(value.value) - 1:
-                print(", ", end="")
-        print(")", end=end)
-    elif isinstance(value, ValueAtom):
-        if value.valueType == "string":
-            print(f"'{value.value}'", end=end)
-        elif value.valueType == "number":
-            print(int(value.value) if value.value.is_integer() else value.value, end=end)
-        else:
-            print(value.value, end=end)
-    else:
-        print(value, end=end)
-
 # Interpreter mode
 def interpret(filepath: str, debug = False):
     with open(filepath, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True) as f:
@@ -71,7 +51,7 @@ def repl(debug = False):
             continue
         try:
             result, env = execute(StringIO(line), env, debug)
-            printValue(result)
+            print(str(result))
         except Exception as e:
             print(e)
             if debug:
