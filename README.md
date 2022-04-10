@@ -164,7 +164,7 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
 
 `mini` supports Rust-like enums.
 
-```ts
+```fs
 enum Optional {
     Some(value),
     None
@@ -291,7 +291,7 @@ else -x
 >
 > The `else if` statements can be used to add additional conditions to an `if-else` statement.
 
-```js
+```fs
 if x >= 10 "ten or more"
 else if x >= 5 "five or more"
 else if x >= 1 "one or more"
@@ -302,7 +302,7 @@ else "none"
 >
 > The `match` statement matches a value against a set of patterns, and returns the value of the first pattern that matches.
 
-```js
+```fs
 match x
     1 => "one"
     2 => "two"
@@ -341,7 +341,7 @@ else "unknown: " + x
 
 Can be used to handle optional values.
 
-```ts
+```fs
 if x is Optional.Some(v) "some: " + v
 else "none"
 ```
