@@ -166,7 +166,7 @@ def read_number(start: str, next: str):
             n += c
         elif c == '.':
             if haveDecimalPoint:
-                raise Exception(f"Unexpected character: {c}")
+                break
             n += c
             haveDecimalPoint = True
         else:
