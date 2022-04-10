@@ -16,9 +16,10 @@
 This is the repository for the example programming language `mini` built for the [*Write a language in a week*](https://dev.to/williamragstad/series/17603) series. Read the full series.
 
 `mini` is a minmal programming language that is built for the purpose of teaching programming language design.
+The language is dynamically typed expression-based, and is designed to be easy to learn and use. There are support for both functional and object oriented programming paradigms.
+
 It is not intended to be a full language, but rather a language that can be expanded upon and explore new and more advanced concepts in language design.
 
-The language is expression-based, and is designed to be easy to learn and use. There are support for both functional and object oriented programming paradigms.
 
 ## Features
 
@@ -29,6 +30,7 @@ The language has a rich set of features, including:
 * Lambda expressions and functions
 * Collection data structures like `list`, `tuple`, `map`, and `set`
 * Enum types
+* Classes and inheritance
 * A set of built-in functions
 * Basic control flow structures
 * Other keywords and operators
@@ -132,7 +134,7 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
     * Methods:
         * `tuple.length` - The number of values in the tuple
         * `tuple[index]` - The value at the given index
-* `map` - A disorderly collection of key-value pairs, where each key can be accessed by index.
+* `map` - A disorderly collection of hashed key-value pairs, where each key can be accessed by index.
     * Examples:
         * `#{'a': 1, 'b': 2, 'c': 3}` - A map of three key-value pairs
         * `#{}` - An empty map
@@ -160,11 +162,46 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
 `mini` supports Rust-like enums.
 
 ```ts
-enum Optional<T> {
-    Some(T),
+enum Optional {
+    Some(value),
     None
 }
+
+x = Optional.Some(42)
+y = Optional.None
+z = Optional.Some([1, 2, 3])
 ```
+
+All identifiers in an enum value argument list must be unique. The values are assigned to the identifiers in the order they are declared and are dynamically typed.
+
+### Classes
+
+```ts
+class Animal {
+    constructor(name) {
+        this.name = name
+    }
+
+    speak() {
+        return `${this.name} makes a noise.`
+    }
+}
+```
+
+`mini` also supports basic inheritance.
+
+```ts
+class Dog : Animal {
+    constructor(name) {
+        super(name)
+    }
+
+    speak() {
+        return `${super.speak()} Woof!`
+    }
+}
+```
+
 
 ### Built-in functions
 
@@ -178,6 +215,31 @@ There are a number of built-in functions that can be used in `mini`:
     * Examples:
         * `input()`
         * `input("Enter your name: ")`
+
+There are also a number of helper functions to convert values between different types.
+* `string` - String representation of a given value
+    * Examples:
+        * `string([1, 2, 3])`
+        * `string(1.23)`
+        * `string(true)`
+        * `string(#{'a': 1, 'b': 2})`
+        * `string("hello")`
+* `number` - Integer representation of a given value
+    * Examples:
+        * `number('1')`
+        * `number(1.23)`
+        * `number(true)` - Returns `1`
+        * `number(#{'a': 1, 'b': 2})` - Fails with an error
+        * `number("hello")` - Fails with an error
+* `boolean` - Boolean representation of a given value
+    * Examples:
+        * `boolean('1')` - Returns `true`
+        * `boolean(1.23)` - Returns `true`
+        * `boolean(0)` - Returns `false`
+        * `boolean(true)` - Returns `true`
+        * `boolean("")` - Returns `false`
+        * `boolean(#{'a': 1, 'b': 2})` - Returns `true`
+        * `boolean("hello")` - Returns `true`
 
 ### Control flow structures
 
@@ -281,7 +343,7 @@ else "unknown: " + x
 Can be used to handle optional values.
 
 ```ts
-if x is Some(v) "some: " + v
+if x is Optional.Some(v) "some: " + v
 else "none"
 ```
 
