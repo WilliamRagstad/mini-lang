@@ -178,11 +178,11 @@ All identifiers in an enum value argument list must be unique. The values are as
 
 ```ts
 class Animal {
-    constructor(name) {
-        this.name = name
+    constructor = (name) => #{
+        name: name
     }
 
-    speak() {
+    speak = (this) => {
         return `${this.name} makes a noise.`
     }
 }
@@ -191,13 +191,9 @@ class Animal {
 `mini` also supports basic inheritance.
 
 ```ts
-class Dog : Animal {
-    constructor(name) {
-        super(name)
-    }
-
-    speak() {
-        return `${super.speak()} Woof!`
+class Dog: Animal {
+    speak = (this) => {
+        return `${this.speak()} Woof!`
     }
 }
 ```

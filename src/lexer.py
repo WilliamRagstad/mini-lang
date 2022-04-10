@@ -227,7 +227,7 @@ def tokenize(_source: TextIOBase, _debug = False) -> list[Token]:
             tokens.append(Token("Separator", c))
         elif c.isalpha() or c == '_':
             t, nc = read_identifier(c, nc)
-            if t.value in ['if', 'else', 'while', 'for', 'return', 'break', 'continue', 'match', 'case', 'default']:
+            if t.value in ['if', 'else', 'while', 'for', 'return', 'break', 'continue', 'match', 'class']:
                 tokens.append(Token("Keyword", t.value))
             elif t.value in ['true', 'false']:
                 tokens.append(Token("Boolean", t.value == 'true'))
