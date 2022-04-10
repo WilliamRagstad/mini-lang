@@ -311,6 +311,17 @@ match x
 
 One could think of match as many `if x is p` statements combined into a single statement.
 
+A match case can also have a guard, which ensures that the pattern also satesfies a logical condition.
+
+```fs
+match x
+    number(n) if n > 0 => "positive"
+    number(n) if n < 0 => "negative"
+    number(n) if n == 0 => "zero"
+    _ => "not a number"
+```
+
+
 ### Other keywords and operators
 
 Other than the operators and keywords listed above, there are a number of other keywords and operators that can be used in `mini`.
