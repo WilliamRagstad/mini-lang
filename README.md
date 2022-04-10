@@ -136,10 +136,13 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
         * `tuple[index]` - The value at the given index
 * `map` - A disorderly collection of hashed key-value pairs, where each key can be accessed by index.
     * Examples:
-        * `#{'a': 1, 'b': 2, 'c': 3}` - A map of three key-value pairs
+        * `#{a: 1, b: 2, c: 3}` - A map of three key-value pairs
+        * `#{0: 1, 1: 2, 2: 3}` - A map with numeric keys
+        * `#{'hello world': 'hello', 'goodbye world': 'goodbye'}` - A map with string keys
         * `#{}` - An empty map
     * Methods:
         * `map[key]` - The value associated with the given key
+        * `map.<key>` - The value associated with the given key, ie. `map.abc` is equivalent to `map['abc']`
         * `map.has(key)` - Returns `true` if the map contains the given key
         * `map.delete(key)` - Removes the value associated with the given key
         * `map.clear()` - Removes all key-value pairs from the map
@@ -183,7 +186,7 @@ class Animal {
     }
 
     speak = (this) => {
-        return `${this.name} makes a noise.`
+        return "{this.name} makes a noise."
     }
 }
 ```
@@ -193,7 +196,7 @@ class Animal {
 ```ts
 class Dog: Animal {
     speak = (this) => {
-        return `${this.speak()} Woof!`
+        return "{this.speak()} Woof!"
     }
 }
 ```
