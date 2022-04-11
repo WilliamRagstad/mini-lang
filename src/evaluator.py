@@ -1,7 +1,7 @@
 from cmath import exp
-from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, TupleAtom, UnitAtom, ValueAtom
+from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, ValueAtom
 from .environment import Environment
-from .parser import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, Node, ProgramNode, TupleNode, UnaryNode
+from .parser import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
 
 # Global variables
 
@@ -51,11 +51,13 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             return ValueAtom(expression.valueType, expression.value)
     elif isinstance(expression, TupleNode):
         if len(expression.elements) == 0:
-            return UnitAtom()
+            return ValueAtom("unit", None)
         elif len(expression.elements) == 1:
             return evaluate_expression(expression.elements[0], env)
         else:
-            return TupleAtom(list(map(lambda e: evaluate_expression(e, env), expression.elements)))
+            return ValueAtom("tuple", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
+    elif isinstance(expression, ListNode):
+        return ValueAtom("list", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
     elif isinstance(expression, AssignmentNode):
         dprint(f"Evaluating assignment {expression.identifier} = {expression.expression}")
         value = evaluate_expression(expression.expression, env)
@@ -146,7 +148,7 @@ def evaluate_expressions(expressions: list[Node], env: Environment) -> Atom:
     """
     Evaluate a list of expressions and return the last result.
     """
-    result = UnitAtom()
+    result = ValueAtom("unit", None)
     for expression in expressions:
         result = evaluate_expression(expression, env)
     return result

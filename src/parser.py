@@ -54,6 +54,20 @@ class TupleNode(Node):
     def __str__(self):
         return '(' + ", ".join(str(e) for e in self.elements) + ')'
 
+class ListNode(Node):
+    """
+    A list node in the abstract syntax tree.
+    """
+    def __init__(self, elements):
+        """
+        Initialize a list node with a list of elements.
+        """
+        super().__init__("List")
+        self.elements = elements
+    
+    def __str__(self):
+        return '[' + ", ".join(str(e) for e in self.elements) + ']'
+
 class AssignmentNode(Node):
     """
     An assignment node in the abstract syntax tree.
@@ -156,9 +170,14 @@ def parse_expression() -> Node:
             dprint(f"Found identifier '{t.value}'")
             return AtomicNode("Identifier", t.value)
         nt = tokens[0]
-        if nt.name == 'Bracket' and nt.value == '(':
-            tokens.pop(0) # Remove the opening bracket
-            lhs = parse_function_call(t.value)
+        if nt.name == 'Bracket':
+            if nt.value == '(':
+                tokens.pop(0) # Remove the opening bracket
+                lhs = parse_function_call(t.value)
+            elif nt.value == '[':
+                tokens.pop(0)
+                indexingExpr = parse_expression()
+                
         elif nt.name == 'AssignmentOperator':
             tokens.pop(0) # Remove the assignment operator
             rhs = parse_expression()
@@ -171,25 +190,50 @@ def parse_expression() -> Node:
         lhs = AtomicNode(t.name.lower(), t.value)
     elif t.name == "Keyword":
         raise Exception(f"Keyword '{t.value}' is not implemented!")
-    elif t.name == "Bracket" and t.value == '(':
-        dprint("Found tuple")
-        lhs = parse_tuple()
-        # Check for trailing right arrow
-        if len(tokens) > 0:
-            t = tokens[0]
-            if t.name == "RightArrow":
-                tokens.pop(0) # Remove the arrow
-                # Validate so that the tuple is only identifiers
-                argumentNames = []
-                for e in lhs.elements:
-                    if not (isinstance(e, AtomicNode) or e.name == "Identifier"):
-                        raise Exception(f"Tuple argument '{e}' is not an identifier!")
-                    argumentNames.append(e.value)
+    elif t.name == "Bracket":
+        if t.value == '(':
+            dprint("Found tuple")
+            lhs = parse_tuple()
+            # Check for trailing right arrow
+            if len(tokens) > 0:
+                t = tokens[0]
+                if t.name == "RightArrow":
+                    tokens.pop(0) # Remove the arrow
+                    # Validate so that the tuple is only identifiers
+                    argumentNames = []
+                    for e in lhs.elements:
+                        if not (isinstance(e, AtomicNode) or e.name == "Identifier"):
+                            raise Exception(f"Tuple argument '{e}' is not an identifier!")
+                        argumentNames.append(e.value)
 
-                # Parse lambda expression
-                dprint("Found lambda expression")
-                body = parse_expression()
-                lhs = LambdaFunctionNode(argumentNames, body)
+                    # Parse lambda expression
+                    dprint("Found lambda expression")
+                    body = parse_expression()
+                    lhs = LambdaFunctionNode(argumentNames, body)
+        elif t.value == '[':
+            dprint("Found list")
+            elements: list[Node] = []
+            expectExpression = False
+            while len(tokens) > 0:
+                t = tokens[0]
+                if t.name == "Bracket" and t.value == ']':
+                    if expectExpression:
+                        raise Exception(f"Expected expression but found '{t.value}'")
+                    tokens.pop(0) # Remove the closing bracket
+                    break
+                elements.append(parse_expression())
+                # parse comma
+                if len(tokens) == 0:
+                    raise Exception("Expected ']' but found end of file")
+                t = tokens[0]
+                # Check that it is a comman and expect another expression if so
+                if t.name == "Separator" and t.value == ',':
+                    tokens.pop(0) # Remove the comma
+                    expectExpression = True
+                else:
+                    expectExpression = False
+            lhs = ListNode(elements)
+            
     elif t.name.endswith("Operator") and t.value in ["-", "!"]:
         dprint("Found unary operator")
         rhs = parse_expression()

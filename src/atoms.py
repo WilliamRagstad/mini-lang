@@ -29,43 +29,38 @@ class ValueAtom(Atom):
         self.valueType = valueType
         self.value = value
     
+    def listValueToStr(self):
+        return list(map(lambda a: str(a), self.value))
+
     def __str__(self) -> str:
         value = str(self.value)
         if self.valueType == "string":
             return f"'{value}'"
         elif self.valueType == "boolean":
             return value.lower()
+        elif self.valueType == "unit":
+            return "()"
+        elif self.valueType == "tuple":
+            return '(' + ", ".join(self.listValueToStr()) + ')'
+        elif self.valueType == "list":
+            return '[' + ", ".join(self.listValueToStr()) + ']'
+        elif self.valueType == "number" and self.value.is_integer():
+            return str(int(self.value))
         return value
 
     def __repr__(self) -> str:
         value = str(self.value)
         if self.valueType == "boolean":
             return value.lower()
+        elif self.valueType == "unit":
+            return "()"
+        elif self.valueType == "tuple":
+            return '(' + ", ".join(self.listValueToStr()) + ')'
+        elif self.valueType == "list":
+            return '[' + ", ".join(self.listValueToStr()) + ']'
+        elif self.valueType == "number" and self.value.is_integer():
+            return str(int(self.value))
         return value
-
-class TupleAtom(ValueAtom):
-    """
-    A tuple node in the abstract syntax tree.
-    """
-    def __init__(self, elements: list):
-        """
-        Initialize a tuple node with a list of elements.
-        """
-        super().__init__("tuple", elements)
-    
-    def __str__(self):
-        return f'(' + ", ".join(str(e) for e in self.value) + ')'
-
-class UnitAtom(TupleAtom):
-    """
-    A unit atom in the language.
-    """
-    def __init__(self):
-        """
-        Initialize a unit atom.
-        """
-        super().__init__([])
-        self.valueType = "unit"
 
 class FunctionAtom(Atom):
     """

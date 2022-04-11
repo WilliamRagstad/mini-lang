@@ -3,14 +3,14 @@ from .lexer import tokenize
 from .parser import parse
 from .evaluator import evaluate
 from .environment import Environment
-from .atoms import Atom, BuiltinFunctionAtom, TupleAtom, UnitAtom, ValueAtom
+from .atoms import Atom, BuiltinFunctionAtom, ValueAtom
 
 # Helper functions
 def globalEnvironment():
     env = Environment("global", None)
     def _print(*args):
         print(*args)
-        return UnitAtom()
+        return ValueAtom("unit", None)
     def _input(p):
         return ValueAtom("string", input(p))
     env.set("print", BuiltinFunctionAtom("print", _print))
