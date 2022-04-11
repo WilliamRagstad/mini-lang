@@ -311,7 +311,7 @@ match x
 
 One could think of match as many `if x is p` statements combined into a single statement.
 
-A match case can also have a guard, which ensures that the pattern also satesfies a logical condition.
+A match case can also have a guard using the `if` keyword, which ensures that the pattern on the left hand side also satesfies a logical condition on the right hand side, before evaluating the matching case expression.
 
 ```fs
 match x
