@@ -15,7 +15,7 @@
 
 This is the repository for the example programming language `mini` built for the [*Write a language in a week*](https://dev.to/williamragstad/series/17603) series. Read the full series.
 
-`mini` is a minmal programming language that is built for the purpose of teaching programming language design.
+`mini` is a minimal programming language that is built for the purpose of teaching programming language design.
 The language is dynamically typed and expression-based. It is designed to be easy to learn and use. There are support for both functional and object oriented programming paradigms.
 
 It is not intended to be a full language, but rather a language that can be expanded upon and explore new and more advanced concepts in language design.
