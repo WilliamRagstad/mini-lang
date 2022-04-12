@@ -612,3 +612,10 @@ for i in 1.. {
     print(txt)
 }
 ```
+
+## Contribute! 🎉
+Contributions of all kinds are welcome, not only in the form of **code** but also with regards to the official **documentation**, **debugging** help and **tickets/issues** in the bug tracker, support of other users on the **community** forum or the official discord and also **financially**.
+
+If you think something is bad about the `mini` language or the article series written about it, please **help in any way to make it better** instead of just complaining about it.
+
+For information about how to go about submitting bug reports or pull requests, please see the project's [Contribution Guidelines](https://github.com/WilliamRagstad/mini-lang/blob/main/CONTRIBUTING.md).
