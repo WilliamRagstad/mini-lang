@@ -27,6 +27,8 @@ The language has a rich set of features, including:
 
 * Basic arithmetic, logic, and comparison operators
 * Primitive data types such as `number`, `boolean`, and `string`
+* Variables
+* C-stlye Comments
 * Lambda expressions and functions
 * Collection data structures like `list`, `tuple`, `map`, and `set`
 * Enum types
@@ -75,6 +77,27 @@ Or multiple variables can be declared with different values on a single line, mu
 x = 10  y = 20  z = 30
 ```
 
+### Comments
+
+```ts
+// Single-line comment
+/* Multi-line
+   comment */
+```
+
+There are also unofficial block comment syntax for documentation.
+This is not currently supported in this language, but mainly processed by documentation tools to generate application programming interface (API) documentation.
+
+```ts
+/**
+ * Documentation comment
+ * 
+ * @param {number} x
+ * @param {string} y
+ * @returns {boolean}
+ **/
+```
+
 ### Lambda expressions
 
 Lambdas are declared with the `=>` operator.
@@ -82,13 +105,6 @@ The left hand side of the `=>` is the parameter-list tuple, and the right hand s
 
 ```js
 (x, y) => x + y
-```
-
-Functions can be declared by assigning a lambda expression to a variable.
-
-```js
-add = (x, y) => x + y
-add(1, 2)
 ```
 
 Empty parameter-list lambdas can be declared with an empty tuple. Used for generator and supplier functions.
@@ -101,6 +117,34 @@ It is also possible to write immediately invoked function expressions (IIFE) tha
 
 ```js
 (() => "IIFE")()
+```
+
+### Functions
+
+A function is simply a lambda expression bound to a variable.
+Functions can be declared by assigning a lambda expression to a variable as seen below.
+
+```cs
+add = (x, y) => x + y
+add(1, 2)
+```
+
+Alternative syntax sugar for functions is to directly specify the parameter-list and function body separated by an assignment operator.
+    
+```cs
+add(x, y) = x + y
+```
+
+These two forms are equivalent as the latter is a shorthand for the former.
+
+`mini` has therefore **higher-order functions**.
+As functions and lambdas are the same thing, they can be used interchangeably. The value of a function is the value of the lambda expression.
+
+```cs
+add = (x, y) => x + y
+add10 = (y) => add(10, y)
+[1, 2, 3].map(add10)
+// [11, 12, 13]
 ```
 
 ### Collection data structures
@@ -354,6 +398,76 @@ m = #{a: 1, 'b': 2, "c": 3}
 for (k, v) in m
     print(k, v)
 // prints a 1, b 2, c 3
+```
+
+> **`while` statement**
+>
+> The `while` statement is used to execute a block of code while a condition is true.
+
+The guard is an expression directly following the `while` keyword, surrounding parentheses are optional. After that, a block of code or a single expression is specified.
+
+```ts
+while x < 10 x += 1
+```
+
+Alternative styles of writing a while loop are also possible.
+
+```ts
+while x < 10 {
+    x += 1
+}
+```
+
+```ts
+while (x < 10) x += 1
+```
+
+Or both.
+
+```ts
+while (x < 10) {
+    x += 1
+}
+```
+
+> **`break` statement**
+>
+> The `break` statement is used to break out of the nearest enclosing loop.
+
+```ts
+while x < 10 {
+    x += 1
+    if x == 5 break
+}
+```
+
+
+> **`continue` statement**
+>
+> The `continue` statement is used to continue to the next iteration of the nearest enclosing loop.
+
+```ts
+while x < 10 {
+    x += 1
+    if x % 2 == 0 continue
+    print(x)
+}
+```
+The example above prints all odd numbers from 1 to 10. E.g. `1, 3, 5, 7, 9`.
+
+
+> **`return` statement**
+>
+> The `return` statement is used to return a value from a function or code block. The last expression in a block is implicitly returned.
+
+```ts
+value = {
+    x = 1
+    if condition return x // Early return if condition is true
+    y = 2
+    x + y // Returned implicitly
+}
+// value can either be 1 (early) or 3 (implicit)
 ```
 
 
