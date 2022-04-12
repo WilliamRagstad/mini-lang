@@ -20,6 +20,32 @@ The language is dynamically typed and expression-based. It is designed to be eas
 
 It is not intended to be a full language, but rather a language that can be expanded upon and explore new and more advanced concepts in language design.
 
+
+<br/>
+<!-- Start Document Outline -->
+
+## Table of contents
+
+- [Installation](#installation)
+    - [Persistent installation](#persistent-installation)
+- [Features](#features)
+- [Specification](#specification)
+    - [Primitive data types](#primitive-data-types)
+    - [Variable declaration](#variable-declaration)
+    - [Comments](#comments)
+    - [Lambda expressions](#lambda-expressions)
+    - [Functions](#functions)
+    - [Collection data structures](#collection-data-structures)
+    - [Enums](#enums)
+    - [Classes](#classes)
+    - [Built-in functions](#built-in-functions)
+    - [Control flow structures](#control-flow-structures)
+    - [Other keywords and operators](#other-keywords-and-operators)
+- [Contribute! 🎉](#contribute-)
+- [License](#license)
+<!-- End  Document Outline -->
+<br/>
+
 ## Installation
 
 Install the latest version of `mini` using the commands below.
@@ -173,6 +199,15 @@ add(x, y) = x + y
 ```
 
 These two forms are equivalent as the latter is a shorthand for the former.
+
+Functions can also have a body block.
+
+```cs
+add(x, y) = {
+    z = y * 2
+    x + z // Return value
+}
+```
 
 `mini` has therefore **higher-order functions**.
 As functions and lambdas are the same thing, they can be used interchangeably. The value of a function is the value of the lambda expression.
@@ -619,3 +654,9 @@ Contributions of all kinds are welcome, not only in the form of **code** but als
 If you think something is bad about the `mini` language or the article series written about it, please **help in any way to make it better** instead of just complaining about it.
 
 For information about how to go about submitting bug reports or pull requests, please see the project's [Contribution Guidelines](https://github.com/WilliamRagstad/mini-lang/blob/main/CONTRIBUTING.md).
+
+## License
+This project is licensed under the [MIT license](https://github.com/WilliamRagstad/mini-lang/blob/main/LICENSE).
+The source code is available on [GitHub](https://github.com/WilliamRagstad/mini-lang).
+To modify the code, please fork the project and experiment with the language.
+Expanding on the language is highly encouraged. If you have any suggestions, please open an issue or pull request.
