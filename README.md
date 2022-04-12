@@ -99,6 +99,21 @@ Or multiple variables can be declared with different values on a single line, mu
 x = 10  y = 20  z = 30
 ```
 
+All variable identifiers **starting** with an underscore `_` are treated as "don't care" variables. Meaning its value is "thrown away" when bound in a scope.
+
+```ts
+_ignored = 10
+print(_ignored) // Error, _ignored is not defined
+```
+
+This is useful for catching all values in a pattern match.
+
+```fs
+match x
+    10 -> "ten"
+    _ -> "other" // Catch all values not already matched
+```
+
 ### Comments
 
 ```ts
