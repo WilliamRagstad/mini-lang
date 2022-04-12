@@ -321,12 +321,48 @@ match x
     _ => "not a number"
 ```
 
+> **`for` statement**
+>
+> The `for` statement is used to iterate over a list of values or an iterator.
+
+The syntax is similar to the `for` loop in other languages such as Python and Ruby, using the `in` keyword to specify the list or iterable.
+
+```fs
+for x in [1, 2, 3] print(x)
+```
+
+Using a lazy iterator is possible by using the `..` operator.
+
+```fs
+for x in 1..10 print(x)
+```
+
+It is also possible to iterate over a map where the keys are used as the iterator. This is because the map data structure implements the `Iterator` class interface.
+
+```ts
+m = #{a: 1, 'b': 2, "c": 3}
+for x in m
+    print(x)
+// prints a, b, c
+```
+
+Passing an extra pattern argument, `v` for example, to the `for` statement is used to specify a variable to be used as the iterator value.
+In this case the variable `k` is the key and `v` is used to store the value of each map entry.
+
+```ts
+m = #{a: 1, 'b': 2, "c": 3}
+for (k, v) in m
+    print(k, v)
+// prints a 1, b 2, c 3
+```
+
 
 ### Other keywords and operators
 
 Other than the operators and keywords listed above, there are a number of other keywords and operators that can be used in `mini`.
 * `is` - Used to match values against patterns and bind them to variables
 * `in` - Used to check if a value is in a set of values
+* `..` - Used to specify a range of values
 
 > **`is` keyword**
 >
@@ -375,7 +411,7 @@ if x in [1, 2, 3] "in list"
 else "not in list"
 ```
 
-Check if a value is in a range.
+Check if a value is in a range. Read more about the `..` operator below.
 
 ```ts
 if x in 1..10 "in range"
@@ -394,4 +430,34 @@ Check if a value is in a tuple.
 ```ts
 if x in (1, 2, 3) "in tuple"
 else "not in tuple"
+```
+
+One can also use `in` when iterating over a set of values using a `for` loop.
+
+```ts
+for x in [1, 2, 3] print(x)
+```
+
+
+> **`..` Operator**
+>
+> The `..` operator is used to specify a range of values including the lower and upper bounds.
+
+```ts
+for i in 1..10 {
+    txt = 'i: ' + i
+    print(txt)
+}
+```
+
+The example above prints the numbers 1 to 10.
+
+It is also possible to generate a lazy sequence of values withouth having to store them in memory by excluding the upper bound.
+
+```ts
+for i in 1.. {
+    if i > 1000 break
+    txt = 'i: ' + i
+    print(txt)
+}
 ```
