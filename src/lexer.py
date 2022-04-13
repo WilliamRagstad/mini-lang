@@ -49,7 +49,7 @@ def can_read() -> bool:
     global source
     return source.readable()
 
-def next_char() -> str | None:
+def next_char():
     """
     Get the next character from source.
 
