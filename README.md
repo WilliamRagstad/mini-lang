@@ -230,18 +230,16 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
     * Methods:
         * `list.length` - The number of values in the list
         * `list[index]` - The value at the given index
-        * `list.push(value)` - Adds a value to the end of the list
+        * `list.append(value)` - Adds a value to the end of the list
+        * `list.prepend(value)` - Adds a value to the beginning of the list
         * `list.pop()` - Removes and returns the last value in the list
-        * `list.unshift(value)` - Adds a value to the beginning of the list
         * `list.shift()` - Removes and returns the first value in the list
-        * `list.splice(start, deleteCount, ...values)` - Removes values from the list and returns them
         * `list.map(fn)` - Returns a new list with the values transformed by the given function
         * `list.filter(fn)` - Returns a new list with the values filtered by the given function
         * `list.reduce(fn, initialValue)` - Returns a single value by combining the values in the list
         * `list.indexOf(value)` - Returns the index of the given value, or `-1` if the value is not in the list
         * `list.lastIndexOf(value)` - Returns the index of the last given value, or `-1` if the value is not in the list
         * `list.join(separator)` - Returns a string with the values in the list separated by the given separator
-        * `list.concat(...lists)` - Returns a new list with the values from the given lists
 * `tuple` - An ordered collection of values, where each value can be accessed by index.
     * Examples:
         * `(1, 2, 3)` - A tuple of three integers
@@ -275,6 +273,68 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
     * `set.delete(value)` - Removes the given value from the set
     * `set.clear()` - Removes all values from the set
     * `set.values()` - Returns a new list with the values in the set
+
+#### More on collection data structures
+
+There are many tips and tricks for working with collections.
+For example, it is possible to use a list as a stack.
+
+```ts
+stack = [1, 2, 3]
+stack.append(4)
+print(stack) // [1, 2, 3, 4]
+stack.pop()
+print(stack.pop()) // 3
+```
+
+It is also possible to use a list as a queue.
+
+```ts
+queue = [1, 2, 3]
+queue.append(4)
+print(queue) // [1, 2, 3, 4]
+queue.shift()
+print(queue.shift()) // 2
+```
+
+Or even a reversed queue.
+
+```ts
+queue = [3, 2, 1]
+queue.prepend(4)
+print(queue) // [4, 3, 2, 1]
+queue.pop()
+print(queue.pop()) // 2
+```
+
+Lists have support for partial pattern matching, utilizing the `|` operator to separate elements from the rest of the list in a pattern match.
+You can extract values from different collections using pattern matching as shown below.
+
+```ts
+match [1, 2, 3]
+    [f, s | t] => print(f, s, t) // 1 2 [3]
+    [h | t] => print(h) // 1
+    [] => print('empty list') // empty list
+    _ => print('other') // other type
+```
+
+```cs
+list = [1, 2, 3]
+if list is [head | tail] {
+    print(head) // 1
+    print(tail) // [2, 3]
+}
+```
+
+Maps have also support for partial pattern matching.
+
+```fs
+match #{a: 1, b: 2, c: 3}
+    #{a: f, b: s} => print(f, s) // 1 2
+    #{a: f} => print(f) // 1
+    #{} => print('empty map') // empty map
+    _ => print('other') // other type
+```
 
 ### Enums
 
