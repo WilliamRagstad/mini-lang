@@ -213,9 +213,9 @@ add(x, y) = {
 As functions and lambdas are the same thing, they can be used interchangeably. The value of a function is the value of the lambda expression.
 
 ```cs
-add = (x, y) => x + y
-add10 = (y) => add(10, y)
-[1, 2, 3].map(add10)
+add = (x, y) => x + y // Lambda expression style
+add10(y) = add(10, y) // Function style
+[1, 2, 3].map(add10)  // Function passed as parameter
 // [11, 12, 13]
 ```
 
@@ -296,26 +296,77 @@ All identifiers in an enum value argument list must be unique. The values are as
 ### Classes
 
 ```ts
-class Animal {
-    constructor = (name) => #{
+Animal = class {
+    Animal(name) = #{
         name: name
     }
 
-    speak = (this) => {
+    speak() = {
         return "{this.name} makes a noise."
     }
 }
 ```
 
+In the example above, `Animal` is a class with a constructor and a `speak` method.
+The method is defined as a function expression, which has an implicit `this` parameter.
+
 `mini` also supports basic inheritance.
 
 ```ts
-class Dog: Animal {
-    speak = (this) => {
-        return "{this.speak()} Woof!"
+Dog = class : Animal {
+    Dog(name) = {
+        // Code block with logic other than just a map
+        return #{
+            name: name,
+            dogSpecificSound: "Woof"
+        }
+    }
+
+    speak() {
+        return "{this.speak()} {this.dogSpecificSound}!"
     }
 }
 ```
+
+Running this with the code below will produce the following output:
+
+```ts
+dog = Dog("Fido")
+dog.speak() // "Fido makes a noise. Woof!"
+```
+
+Classes are instantiated simliar to function calls, other languages like Python have a similar syntax.
+
+```ts
+animal = Animal("Pig")
+animal.speak() // "Pig makes a noise."
+animal.name // Ok, returns "Pig"
+animal.dogSpecificSound // Throws an error, since dogSpecificSound is not defined on Animal
+```
+
+Because classes also are expressions, they can be assigned to variables. This is useful for creating objects that are used in multiple places, or for creating objects that are passed to functions.
+This is also how static methods can be defined on a class.
+
+```ts
+MyClass = class {
+    hello() {
+        return "Hello world!"
+    }
+}
+MyClass.hello()     // Throw an error, since hello is only defined on MyClass instances
+MyClass.bye()       // Throws an error, since bye is not defined on MyClass
+myInstance = MyClass()
+myInstance.hello()  // "Hello world!"
+myInstance.bye()    // Throws an error, since bye is not defined on MyClass instances
+// Define a static method on MyClass
+MyClass.bye = () => {
+    return "Bye world!"
+}
+MyClass.bye()       // "Bye world!"
+myInstance.bye()    // Throws an error, since bye is not defined on MyClass instances byt on MyClass itself
+```
+> Note: `mini` does not support static methods inside of class expressions.\
+> Instead, static methods can be defined on the class value itself as shown above for `MyClass.bye`.
 
 
 ### Built-in functions
