@@ -96,6 +96,8 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             return ValueAtom("number", lhs.value / rhs.value)
         elif op == "%" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("number", lhs.value % rhs.value)
+        elif op == "^" and compatible_types(lhs, rhs, ["number"]):
+            return ValueAtom("number", lhs.value ** rhs.value)
         elif op == "==" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
             return ValueAtom("boolean", lhs.value == rhs.value)
         elif op == "!=" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
