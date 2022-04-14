@@ -54,8 +54,6 @@ Install the latest version of `mini` using the commands below.
 > git clone https://github.com/WilliamRagstad/mini-lang
 > cd mini-lang
 > py mini.py
-# or
-> mini
 ```
 
 The `mini` interpreter is written in [Python](https://www.python.org/) and requires version `3.0`, `3.6` or later.
