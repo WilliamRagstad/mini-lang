@@ -60,7 +60,6 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         dprint(f"Evaluating assignment {expression.identifier} = {expression.expression}")
         value = evaluate_expression(expression.expression, env)
         env.set(expression.identifier, value)
-        # dprint(f"Resulting environment: {env}")
         return value
     elif isinstance(expression, FunctionCallNode):
         return evaluate_function_call(expression, env)
