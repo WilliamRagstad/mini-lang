@@ -68,6 +68,17 @@ class Parser:
         self.lexer.next_token() # Remove the end delimiter
         return expressions
 
+    def __ident_list_to_str(self, nodes: list[Node]) -> list[str]:
+        """
+        Convert and verify a list of identifiers and return a list of strings.
+        """
+        result = []
+        for e in nodes:
+            if not (isinstance(e, AtomicNode) or e.name == "IDENTIFIER"):
+                raise Exception(f"Lambda argument '{e}' is not an identifier!")
+            result.append(e.value)
+        return result
+
     def __parse_primary(self) -> Node:
         """
         Parse a primary expression from the lexer.
@@ -82,6 +93,8 @@ class Parser:
                 if self.lexer.peek_token().name == "ASSIGNMENT":
                     self.lexer.next_token() # Remove the assignment
                     rhs = self.__parse_expression()
+                    # Convert args to list of strings
+                    args = self.__ident_list_to_str(args)
                     return AssignmentNode(t.value, LambdaFunctionNode(args, rhs), prev_comment)
                 return FunctionCallNode(t.value, args)
             elif nt.name == 'LBRACKET':
@@ -107,11 +120,7 @@ class Parser:
                 self.lexer.next_token() # Remove right arrow
                 # Validate that the tuple only has identifiers
                 # And add them to a list of argument names
-                args = []
-                for e in lhs.elements:
-                    if not (isinstance(e, AtomicNode) or e.name == "IDENTIFIER"):
-                        raise Exception(f"Lambda argument '{e}' is not an identifier!")
-                    args.append(e.value)
+                args = self.__ident_list_to_str(lhs.elements)
                 # Parse the body of the lambda
                 body = self.__parse_expression()
                 return LambdaFunctionNode(args, body)

@@ -8,3 +8,6 @@ print(
 pi = 3.141592653589793
 tau = () => 2*pi
 print(tau())
+
+f(x) = 2*x + 1
+print(f(2))
