@@ -115,7 +115,7 @@ class Parser:
         elif t.name == "LBRACKET":
             return ListNode(self.__parse_list_of_expressions("COMMA", "RBRACKET"))
         elif t.name in ["MINUS", "NOT"]:
-            return UnaryNode(t.name, self.__parse_expression())
+            return UnaryNode(t.name, self.__parse_primary())
         else:
             self.__error(f"Expected primary expression but got '{t.name}'", t)
 
