@@ -154,7 +154,7 @@ This is not currently supported in this language, but mainly processed by docume
 ```ts
 /**
  * Documentation comment
- * 
+ *
  * @param {number} x
  * @param {string} y
  * @returns {boolean}
@@ -193,7 +193,7 @@ add(1, 2)
 ```
 
 Alternative syntax sugar for functions is to directly specify the parameter-list and function body separated by an assignment operator.
-    
+
 ```cs
 add(x, y) = x + y
 ```
@@ -263,16 +263,6 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
         * `map.keys()` - Returns a new list with the keys in the map
         * `map.values()` - Returns a new list with the values in the map
         * `map.entries()` - Returns a new list with the key-value pairs in the map
-* `set` - A disorderly collection of unique values.
-    * Examples:
-        * `set(1, 2, 3)` - Initialize a set with three unique values.
-        * `set()` - The empty set.
-    * `set.length` - The number of values in the set
-    * `set.has(value)` - Returns `true` if the set contains the given value
-    * `set.add(value)` - Adds the given value to the set
-    * `set.delete(value)` - Removes the given value from the set
-    * `set.clear()` - Removes all values from the set
-    * `set.values()` - Returns a new list with the values in the set
 
 #### More on collection data structures
 
@@ -335,6 +325,22 @@ match #{a: 1, b: 2, c: 3}
     #{} => print('empty map') // empty map
     _ => print('other') // other type
 ```
+
+> A **Set** is a collection of unique values.\
+> `mini` provides a `set` data structure in its standard library for storing and manipulating unique values in an unordered collection.
+
+Examples:
+* `set(1, 2, 3)` - Initialize a set with three unique values.
+* `set()` - The empty set.
+
+Methods:
+* `set.length` - The number of values in the set
+* `set.has(value)` - Returns `true` if the set contains the given value
+* `set.add(value)` - Adds the given value to the set
+* `set.delete(value)` - Removes the given value from the set
+* `set.clear()` - Removes all values from the set
+* `set.values()` - Returns a new list with the values in the set
+
 
 ### Enums
 
@@ -694,7 +700,7 @@ Or match on data types.
 
 ```ts
 if l is [head | tail] "list: " + head + " " + tail
-else 
+else
 ```
 
 > **`in` keyword**
