@@ -1,5 +1,5 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, ValueAtom
-from .ast import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, IndexingNode, LambdaFunctionNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
 from .environment import Environment
 
 # Global variables
@@ -66,6 +66,29 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         return evaluate_function_call(expression, env)
     elif isinstance(expression, LambdaFunctionNode):
         return FunctionAtom(expression.params, expression.body, env)
+    elif isinstance(expression, IndexingNode):
+        indexAtom = evaluate_expression(expression.index, env)
+        if not isinstance(indexAtom, ValueAtom):
+            raise Exception(f"Indexing expression does not evaluate to an atomic value")
+        if indexAtom.valueType == "number":
+            # Make sure it's an integer
+            if not indexAtom.value.is_integer():
+                raise Exception(f"Indexing expression does not evaluate to an integer or string")
+            index = int(indexAtom.value)
+        elif indexAtom.valueType == "string":
+            index = indexAtom.value
+        else:
+            raise Exception(f"Indexing expression does not evaluate to an integer or string")
+        value = evaluate_expression(expression.lhs, env)
+        if isinstance(value, ValueAtom):
+            if value.type == "list":
+                element = value.value[index]
+            elif value.type == "tuple":
+                element = value.value[index]
+            dprint(f"Indexing {value.type}: {value.value} with index {index} -> {element}")
+            return element
+        else:
+            raise Exception(f"Expression of type {value.type} does not support indexing")
     elif isinstance(expression, UnaryNode):
         op = expression.operator
         rhs = evaluate_expression(expression.rhs, env)
