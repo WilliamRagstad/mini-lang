@@ -176,12 +176,6 @@ Empty parameter-list lambdas can be declared with an empty tuple. Used for gener
 () => 42
 ```
 
-It is also possible to write immediately invoked function expressions (IIFE) that runs as soon as it is defined.
-
-```js
-(() => "IIFE")()
-```
-
 ### Functions
 
 A function is simply a lambda expression bound to a variable.
