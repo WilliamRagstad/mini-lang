@@ -69,9 +69,9 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
     elif isinstance(expression, UnaryNode):
         op = expression.operator
         rhs = evaluate_expression(expression.rhs, env)
-        if op == "-" and compatible_type(rhs, ["number"]):
+        if op == "MINUS" and compatible_type(rhs, ["number"]):
             return ValueAtom("number", -rhs.value)
-        elif op == "!" and compatible_type(rhs, ["boolean"]):
+        elif op == "NOT" and compatible_type(rhs, ["boolean"]):
             return ValueAtom("boolean", not rhs.value)
         else:
             raise Exception(f"Unkown unary operator '{op}'")
