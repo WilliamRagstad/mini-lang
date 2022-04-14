@@ -1,352 +1,160 @@
-from tokenize import Token
+# Parser class
+from .lexer import Lexer, Token
+from .ast import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, IndexingNode, LambdaFunctionNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
 
-# Helper classes
-class Node():
-    """
-    A base node in the abstract syntax tree.
-    """
-    def __init__(self, name):
-        """
-        Initialize a node with a name
-        """
-        self.name = name
-    
-    def __str__(self):
-        return self.name
-
-class ProgramNode(Node):
-    """
-    A program node in the abstract syntax tree.
-    """
-    def __init__(self, expressions):
-        """
-        Initialize a program node with a list of expressions.
-        """
-        super().__init__("Program")
-        self.expressions = expressions
-
-class AtomicNode(Node):
-    """
-    An atomic expression node in the abstract syntax tree.
-    """
-    def __init__(self, valueType, value):
-        """
-        Initialize an atomic expression node with a value.
-        """
-        super().__init__("AtomicExpression")
-        self.valueType = valueType
-        self.value = value
-    
-    def __str__(self):
-        return f"{self.name} {self.valueType}({self.value})"
-
-class TupleNode(Node):
-    """
-    A tuple node in the abstract syntax tree.
-    """
-    def __init__(self, elements):
-        """
-        Initialize a tuple node with a list of elements.
-        """
-        super().__init__("Tuple")
-        self.elements = elements
-    
-    def __str__(self):
-        return '(' + ", ".join(str(e) for e in self.elements) + ')'
-
-class ListNode(Node):
-    """
-    A list node in the abstract syntax tree.
-    """
-    def __init__(self, elements):
-        """
-        Initialize a list node with a list of elements.
-        """
-        super().__init__("List")
-        self.elements = elements
-    
-    def __str__(self):
-        return '[' + ", ".join(str(e) for e in self.elements) + ']'
-
-class AssignmentNode(Node):
-    """
-    An assignment node in the abstract syntax tree.
-    """
-    def __init__(self, identifier: str, expression: Node):
-        """
-        Initialize an assignment node with an identifier and an expression.
-        """
-        super().__init__("Assignment")
-        self.identifier = identifier
-        self.expression = expression
-    
-    def __str__(self):
-        return f"{self.name} {self.identifier} = {self.expression}"
-
-class UnaryNode(Node):
-    """
-    A unary node in the abstract syntax tree.
-    """
-    def __init__(self, operator: str, rhs: Node):
-        """
-        Initialize a unary expression node with an operator and a right
-        expression.
-        """
-        super().__init__("UnaryExpression")
-        self.operator = operator
-        self.rhs = rhs
-    
-    def __str__(self):
-        return f"{self.name} {self.operator}({self.rhs})"
-
-class BinaryNode(Node):
-    """
-    A binary expression node in the abstract syntax tree.
-    """
-    def __init__(self, operator: str, left: Node, right: Node):
-        """
-        Initialize a binary expression node with an operator, left and right
-        expressions.
-        """
-        super().__init__("BinaryExpression")
-        self.operator = operator
-        self.left = left
-        self.right = right
-    
-    def __str__(self):
-        return f"{self.name} ({self.left} {self.operator} {self.right})"
-
-class FunctionCallNode(Node):
-    """
-    A function call node in the abstract syntax tree.
-    """
-    def __init__(self, functionName, arguments):
-        """
-        Initialize a function call node with a function name and a list of
-        arguments.
-        """
-        super().__init__("FunctionCall")
-        self.functionName = functionName
-        self.arguments = arguments
-    
-    def __str__(self):
-        return f"{self.name} {self.functionName}({', '.join(str(a) for a in self.arguments)})"
-
-class LambdaFunctionNode(Node):
-    """
-    A lambda function node in the abstract syntax tree.
-    """
-    def __init__(self, params: list[str], body: Node):
-        """
-        Initialize a lambda function node with a list of parameters and a body.
-        """
-        super().__init__("LambdaFunction")
-        self.params = params
-        self.body = body
-    
-    def __str__(self):
-        return f"{self.name} ({self.params} => {self.body})"
-
-# Global variables
-tokens: list[Token] = []
-debug = False
-
-# Parsing precedence bindings for order of operations
-precedence = {
-    '^': 30, # Exponentiation
-    '!': 30, # Negation
-    '*': 20, # Multiplication
-    '/': 20, # Division
-    '%': 20, # Modulo
-    '&': 20, # Bitwise/Logic AND
-    '+': 10, # Addition
-    '-': 10, # Subtraction
-    '|': 10, # Bitwise/Logic OR
-    '==': 5, # Equality
+# Left associative infix operators binding powers
+precedence_binary_left = {
+    'POWER':    30,
+    'NOT':      30,
+    'MULTIPLY': 20,
+    'DIVIDE':   20,
+    'MODULO':   20,
+    'PLUS':     10,
+    'MINUS':    10,
+    'EQUAL':    5,
 }
 
-# Helper functions
-def dprint(*args):
-    """
-    Print debug messages.
-    """
-    if debug:
-        print(*args)
+# Right associative infix operators binding powers
+precedence_binary_right = {
+    'AND':      20,
+    'OR':       10,
+}
 
-def parse_expression() -> Node:
-    """
-    Parse an expression from a list of tokens.
-    """
-    t = tokens.pop(0)
-    lhs = None
-    if t.name == "Identifier":
-        if len(tokens) == 0:
-            dprint(f"Found identifier '{t.value}'")
-            return AtomicNode("Identifier", t.value)
-        nt = tokens[0]
-        if nt.name == 'Bracket':
-            if nt.value == '(':
-                tokens.pop(0) # Remove the opening bracket
-                lhs = parse_function_call(t.value)
-            elif nt.value == '[':
-                tokens.pop(0)
-                indexingExpr = parse_expression()
-                if tokens[0].value != ']':
-                    raise Exception("Expected ']'")
-                tokens.pop(0) # Remove the closing bracket
-                lhs = ListNode([indexingExpr])
-        elif nt.name == 'AssignmentOperator':
-            tokens.pop(0) # Remove the assignment operator
-            rhs = parse_expression()
-            lhs = AssignmentNode(t.value, rhs)
-            dprint(f"Found assignment '{t.value}' = {rhs}")
-        else:
-            dprint(f"Found identifier '{t.value}'")
-            lhs = AtomicNode("Identifier", t.value)
-    elif t.name in ["String", "Number", "Boolean"]:
-        lhs = AtomicNode(t.name.lower(), t.value)
-    elif t.name == "Keyword":
-        raise Exception(f"Keyword '{t.value}' is not implemented!")
-    elif t.name == "Bracket":
-        if t.value == '(':
-            dprint("Found tuple")
-            lhs = parse_tuple()
+# Parser class
+class Parser:
+    def __init__(self, lexer: Lexer, debug = False):
+        self.lexer = lexer
+        self.debug = debug
+
+    # Helper functions
+    def __dprint(self, *args):
+        """
+        Print debug messages.
+        """
+        if self.debug:
+            print(*args)
+
+    def __error(self, msg: str, token: Token):
+        """
+        Raise an error with the given message.
+        """
+        raise Exception(f"Semantic Error at {token.line}:{token.column}: {msg}")
+
+    def __expect(self, token_name: str):
+        """
+        Expect a token from the lexer.
+        """
+        t = self.lexer.next_token()
+        if t.name != token_name:
+            raise Exception(f"Expected {token_name} but got {t.name}")
+        return t
+
+    # Tokenizer functions
+    def __parse_list_of_expressions(self, delimiter: str, end_delimiter: str) -> list[Node]:
+        """
+        Parse a list of expressions from the lexer and return them as a list.
+        The expressions are separated by the given delimiter and the list ends with the given end delimiter.
+        No start delimiter is required.
+        """
+        expressions = []
+        nt = self.lexer.peek_token()
+        while nt.name != end_delimiter:
+            expressions.append(self.__parse_expression())
+            nt = self.lexer.peek_token()
+            if nt.name == delimiter:
+                self.lexer.next_token()
+            elif nt.name != end_delimiter:
+                self.__error(f"Expected '{delimiter}' or '{end_delimiter}' but got '{nt.name}'", nt)
+        self.lexer.next_token() # Remove the end delimiter
+        return expressions
+
+    def __parse_primary(self) -> Node:
+        """
+        Parse a primary expression from the lexer.
+        """
+        t = self.lexer.next_token()
+        if t.name == "IDENTIFIER":
+            nt = self.lexer.peek_token()
+            if nt.name == 'LPAREN':
+                self.lexer.next_token() # Remove the opening paren
+                args = self.__parse_list_of_expressions("COMMA", "RPAREN")
+                return FunctionCallNode(t.value, args)
+            elif nt.name == 'LBRACKET':
+                self.lexer.next_token() # Remove the opening bracket
+                index = self.__parse_expression()
+                self.__expect("RBRACKET")
+                return IndexingNode(AtomicNode("identifier", t.value), index)
+            elif nt.name == 'ASSIGNMENT':
+                self.lexer.next_token() # Remove the assignment operator
+                rhs = self.__parse_expression()
+                return AssignmentNode(t.value, rhs)
+            else:
+                return AtomicNode("identifier", t.value)
+        elif t.name in ["STRING", "NUMBER", "BOOLEAN"]:
+            return AtomicNode(t.name.lower(), t.value)
+        elif t.name == "KEYWORD":
+            raise Exception(f"Keyword '{t.value}' is not implemented!")
+        elif t.name == "LPAREN":
+            lhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN"))
             # Check for trailing right arrow
-            if len(tokens) > 0:
-                t = tokens[0]
-                if t.name == "RightArrow":
-                    tokens.pop(0) # Remove the arrow
-                    # Validate so that the tuple is only identifiers
-                    argumentNames = []
-                    for e in lhs.elements:
-                        if not (isinstance(e, AtomicNode) or e.name == "Identifier"):
-                            raise Exception(f"Tuple argument '{e}' is not an identifier!")
-                        argumentNames.append(e.value)
-
-                    # Parse lambda expression
-                    dprint("Found lambda expression")
-                    body = parse_expression()
-                    lhs = LambdaFunctionNode(argumentNames, body)
-        elif t.value == '[':
-            dprint("Found list")
-            elements: list[Node] = []
-            expectExpression = False
-            while len(tokens) > 0:
-                t = tokens[0]
-                if t.name == "Bracket" and t.value == ']':
-                    if expectExpression:
-                        raise Exception(f"Expected expression but found '{t.value}'")
-                    tokens.pop(0) # Remove the closing bracket
-                    break
-                elements.append(parse_expression())
-                # parse comma
-                if len(tokens) == 0:
-                    raise Exception("Expected ']' but found end of file")
-                t = tokens[0]
-                # Check that it is a comman and expect another expression if so
-                if t.name == "Separator" and t.value == ',':
-                    tokens.pop(0) # Remove the comma
-                    expectExpression = True
-                else:
-                    expectExpression = False
-            lhs = ListNode(elements)
-            
-    elif t.name.endswith("Operator") and t.value in ["-", "!"]:
-        dprint("Found unary operator")
-        rhs = parse_expression()
-        lhs = UnaryNode(t.value, rhs)
-    else:
-        raise Exception(f"Unexpected {t.name} token: '{t.value}'")
-    
-    if lhs is None:
-        # Should never happen
-        raise Exception(f"Unexpected {t.name} token: '{t.value}'")
-    
-    # Parse binary expression
-    while len(tokens) > 0:
-        t = tokens[0]
-        if t.name.endswith("Operator"):
-            tokens.pop(0) # Remove the operator token
-            rhs = parse_expression()
-            lhs = BinaryNode(t.value, lhs, rhs)
+            nt = self.lexer.peek_token()
+            if nt.name == "RIGHTARROW":
+                self.lexer.next_token() # Remove right arrow
+                # Validate that the tuple only has identifiers
+                # And add them to a list of argument names
+                args = []
+                for e in lhs.elements:
+                    if not (isinstance(e, AtomicNode) or e.name == "IDENTIFIER"):
+                        raise Exception(f"Lambda argument '{e}' is not an identifier!")
+                    args.append(e.value)
+                # Parse the body of the lambda
+                body = self.__parse_expression()
+                return LambdaFunctionNode(args, body)
+            else:
+                return lhs
+        elif t.name == "LBRACKET":
+            return ListNode(self.__parse_list_of_expressions("COMMA", "RBRACKET"))
+        elif t.name in ["MINUS", "NOT"]:
+            return UnaryNode(t.name, self.__parse_expression())
         else:
-            break
+            self.__error(f"Expected primary expression but got '{t.name}'", t)
 
-    return lhs
+    def __parse_binary_expression(self, lhs: Node, precedence: int) -> Node:
+        """
+        Parse a binary expression from the lexer.
 
-def parse_tuple() -> TupleNode:
-    """
-    Parse a tuple from a list of tokens.
-    """
-    # The previous token should have been the opening bracket
-    elements: list[Node] = []
-    expectExpression = False
-    while len(tokens) > 0:
-        t = tokens[0]
-        if t.name == "Bracket" and t.value == ')':
-            if expectExpression:
-                raise Exception(f"Expected expression but found '{t.value}'")
-            tokens.pop(0) # Remove the closing bracket
-            break
-        elements.append(parse_expression())
-        # parse comma
-        if len(tokens) == 0:
-            raise Exception("Expected ')' but found end of file")
-        t = tokens[0]
-        # Check that it is a comman and expect another expression if so
-        if t.name == "Separator" and t.value == ',':
-            tokens.pop(0) # Remove the comma
-            expectExpression = True
-        else:
-            expectExpression = False
+        Should only be called from within `__parse_binary_expression` itself.
 
-    # if len(elements) == 0:
-    #     return UnitNode()
-    # if len(elements) == 1:
-    #    return elements[0]
-    # Leave this logic to the evaluator
-    return TupleNode(elements)
+        Ref: https://en.wikipedia.org/wiki/Operator-precedence_parser#Pratt_parsing
+        """
+        l = self.lexer.peek_token().name
+        while ((l in precedence_binary_left and precedence_binary_left[l] >= precedence) or
+               (l in precedence_binary_right and precedence_binary_right[l] > precedence)):
+            op = self.lexer.next_token().name
+            self.__dprint(f"Parsing binary expression with operator '{op}'")
+            rhs = self.__parse_primary()
+            l = self.lexer.peek_token().name
+            while ((l in precedence_binary_left and precedence_binary_left[l] > precedence_binary_left[op]) or
+                   (l in precedence_binary_right and precedence_binary_right[l] == precedence_binary_right[op])):
+                rhs = self.__parse_binary_expression(rhs, precedence_binary_left[l])
+                l = self.lexer.peek_token().name
+            lhs = BinaryNode(op, lhs, rhs)
+        return lhs
 
-def parse_function_call(functionName: str) -> FunctionCallNode:
-    """
-    Parse a function call from a list of tokens.
-    """
-    arguments = []
-    expectArguement = False
-    dprint(f"Parsing function call '{functionName}'...")
-    while len(tokens) > 0:
-        t = tokens[0]
-        if t.name == "Bracket" and t.value == ')':
-            if expectArguement:
-                raise Exception("Expected argument")
-            tokens.pop(0) # Remove the closing bracket
-            break
-        dprint("Parsing argument...")
-        arguments.append(parse_expression())
+    def __parse_expression(self) -> Node:
+        """
+        Parse an expression from the lexer.
+        """
+        return self.__parse_binary_expression(self.__parse_primary(), 0)
 
-        if len(tokens) == 0:
-            raise Exception("Expected ')'")
-
-        expectArguement = False
-        t = tokens[0]
-        if t.name == "Separator" and t.value == ',':
-            tokens.pop(0)
-            expectArguement = True
-    dprint(f"Found function call '{functionName}' with {len(arguments)} arguments")
-    return FunctionCallNode(functionName, arguments)
-
-
-# Parse function
-def parse(_tokens: list[Token], _debug = False) -> ProgramNode:
-    """
-    Parse a list of tokens into an abstract syntax tree.
-    """
-    global tokens, debug
-    tokens = _tokens
-    debug = _debug
-    program = ProgramNode([])
-    if len(tokens) == 0:
+    def parse(self):
+        """
+        Parse the source into an abstract syntax tree.
+        """
+        program = ProgramNode([])
+        while not self.lexer.is_done():
+            e = self.__parse_expression()
+            self.__dprint(f"Parsed expression: {e}")
+            program.expressions.append(e)
+        self.__dprint(f"Parsed program: {program}")
         return program
-    while len(tokens) > 0:
-        program.expressions.append(parse_expression())
-    return program

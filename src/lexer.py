@@ -1,246 +1,295 @@
-
 from io import TextIOBase
 
-# Global variables
-
-source: TextIOBase = None
-line = 1
-column = 0
-debug = False
-
-# Helper classes
+# Token class
 class Token():
     """
     The smallest unit of the language.
     """
-    def __init__(self, name, value):
+    def __init__(self, name: str, line, column, value = None):
         """
         Initialize a token with a name and a value.
         """
-        global line, column
         self.name = name
         self.value = value
         self.line = line
         self.column = column
-    
+
     def __str__(self):
         """
         Return a string representation of the token.
         """
         return f"{self.name}: '{self.value}' at {self.line}:{self.column}"
 
-# Helper functions
-def dprint(*args):
-    """
-    Print debug messages.
-    """
-    if debug:
-        print(*args)
 
-def can_read() -> bool:
-    """
-    Check if source can be read.
+# Lexer class
+class Lexer:
+    def __init__(self, source: TextIOBase, debug = False):
+        self.__source = source
+        self.__line = 1
+        self.__column = 1
+        self.__debug = debug
+        self.__peeked_char: str | None = None # The last character that was peeked
+        self.__peeked_token: Token | None = None # The last token that was peeked
 
-    Returns
-    -------
-    bool
-        True if source can be read, False otherwise.
-    """
-    global source
-    return source.readable()
 
-def next_char():
-    """
-    Get the next character from source.
+    # Helper functions
+    def __token(self, name: str, value = None) -> Token:
+        """
+        Create a token with the given name and value.
+        """
+        return Token(name, self.__line, self.__column, value)
 
-    Returns
-    -------
-    str
-        The next character from the source stream.
-    """
-    global source, line, column
-    if not can_read():
-        return None
-    c = source.read(1)
-    if c == '\n':
-        line += 1
-        column = 0
-    else:
-        column += 1
-    return c
+    def __error(self, msg: str):
+        """
+        Raise an error with the given message.
+        """
+        raise Exception(f"Syntax Error at {self.__line}:{self.__column}: {msg}")
 
-def read_string(quote: str, start: str) -> Token:
-    """
-    Read a string from source.
 
-    Parameters
-    ----------
-    quote : str
-        The quote character.
+    # Tokenizer functions
+    def __can_read(self) -> bool:
+        """
+        Check if source can be read.
 
-    Returns
-    -------
-    Token
-        A token with the string value.
-    """
-    firstChar = True
-    s = ""
-    while can_read():
-        if firstChar:
-            c = start
-            firstChar = False
+        Returns
+        -------
+        bool
+            True if source can be read, False otherwise.
+        """
+        return self.__source.readable()
+
+    def __next_char(self):
+        """
+        Get the next character from source.
+
+        Returns
+        -------
+        str | None
+            The next character from the source stream.
+            Or None if the end of the stream has been reached.
+        """
+        if self.__peeked_char is not None:
+            c = self.__peeked_char
+            self.__peeked_char = None # Reset peeked char
         else:
-            c = next_char()
-        if c == quote:
-            return Token("String", s)
-        elif c == '\\':
-            c = next_char()
-            if c == 'n':
-                s += '\n'
-            elif c == 't':
-                s += '\t'
-            elif c == 'r':
-                s += '\r'
+            if not self.__can_read():
+                return None
+            c = self.__source.read(1)
+        if c == '\n':
+            self.__line += 1
+            self.__column = 1
+        else:
+            self.__column += 1
+        return c
+
+    def __peek_char(self):
+        """
+        Get the next character from source without consuming it.
+
+        Returns
+        -------
+        str | None
+            The next character from the source stream.
+            Or None if the end of the stream has been reached.
+        """
+        if self.__peeked_char is not None:
+            return self.__peeked_char
+        else:
+            if not self.__can_read():
+                c = None
+            else:
+                c = self.__source.read(1)
+            # Put the character in the queue
+            self.__peeked_char = c
+            return c
+
+    def __read_string(self, quote: str) -> Token:
+        """
+        Read a string from source.
+
+        Parameters
+        ----------
+        quote : str
+            The quote character.
+
+        Returns
+        -------
+        Token
+            A token with the string value.
+        """
+        s = ""
+        while self.__can_read():
+            c = self.__next_char()
+            if c == quote:
+                return self.__token("STRING", s)
             elif c == '\\':
-                s += '\\'
-            elif c == '"':
-                s += '"'
-            elif c == "'":
-                s += "'"
-            else:
-                raise Exception(f"Unexpected character: {c}")
-        else:
-            s += c
-    raise Exception(f"Unexpected end of file")
-
-def read_identifier(start: str, next: str) -> Token:
-    """
-    Read an identifier from source.
-
-    Parameters
-    ----------
-    start : str
-        The first character of the identifier.
-    next : str
-        The next character in the stream.
-
-    Returns
-    -------
-    Token
-        A token with the identifier value.
-    """
-    if not (next.isalnum() or next == '_'):
-        return Token("Identifier", start), next
-    i = start + next
-    c = None # Next character
-    while can_read():
-        c = next_char()
-        if c.isalnum() or c == '_':
-            i += c
-        else:
-            break
-    return Token("Identifier", i), c
-
-def read_number(start: str, next: str):
-    """
-    Read a number from source.
-
-    Parameters
-    ----------
-    start : str
-        The first character of the number.
-
-    Returns
-    -------
-    Token
-        A token with the number value.
-    """
-    if not (next.isdigit() or next == '.'):
-        return Token("Number", float(start)), next
-    n = start + next
-    c: str = None # Next character
-    haveDecimalPoint = next == '.'
-    while can_read():
-        c = next_char()
-        if c.isdigit():
-            n += c
-        elif c == '.':
-            if haveDecimalPoint:
-                break
-            n += c
-            haveDecimalPoint = True
-        else:
-            break
-    return Token("Number", float(n)), c
-
-# Lexer function
-def tokenize(_source: TextIOBase, _debug = False) -> list[Token]:
-    """
-    Tokenize source code and return a list of tokens.
-
-    Parameters
-    ----------
-    source : TextIOBase
-        The source code input text stream.
-    debug : bool, optional
-        If true, print debug messages.
-    
-    Returns
-    -------
-    list[Token]
-        A list of tokens.
-    """
-    global source, debug
-    source = _source
-    debug = _debug
-    tokens = []
-    if can_read(): nc = next_char()
-    else: return tokens
-    while can_read():
-        c = nc
-        nc = next_char()
-        if c == ' ' or c == '\n' or c == '\t':
-            continue
-        elif c == '\0' or c == '' or c == None:
-            break
-        elif c in ['+', '-', '*', '/', '%', '^']:
-            if nc == '=':
-                tokens.append(Token("MutationOperator", c + nc))
-                nc = next_char() # Consume the equal sign
-            else:
-                tokens.append(Token("ArithmeticOperator", c))
-        elif c in ['&', '|', '=', '<', '>', '!']:
-            if nc == '=':
-                tokens.append(Token("ComparisonOperator", c + nc))
-                nc = next_char() # Consume the equal sign
-            elif c == '=':
-                if nc == '>':
-                    tokens.append(Token("RightArrow", c + nc))
-                    nc = next_char()
+                c = self.__next_char()
+                if c == 'n':
+                    s += '\n'
+                elif c == 't':
+                    s += '\t'
+                elif c == 'r':
+                    s += '\r'
+                elif c == '\\':
+                    s += '\\'
+                elif c in ['"', "'"]:
+                    s += c
                 else:
-                    tokens.append(Token("AssignmentOperator", c))
+                    self.__error("Invalid escape sequence: \\" + c)
             else:
-                tokens.append(Token("LogicalOperator", c))
-        elif c in ['(', ')', '{', '}', '[', ']']:
-            tokens.append(Token("Bracket", c))
-        elif c in ['.', ',', ';', ':', '?']:
-            tokens.append(Token("Separator", c))
-        elif c.isalpha() or c == '_':
-            t, nc = read_identifier(c, nc)
-            if t.value in ['if', 'else', 'while', 'for', 'return', 'break', 'continue', 'match', 'class']:
-                tokens.append(Token("Keyword", t.value))
-            elif t.value in ['true', 'false']:
-                tokens.append(Token("Boolean", t.value == 'true'))
+                s += c
+        self.__error("Unterminated string")
+
+    def __read_identifier(self, first: str) -> Token:
+        """
+        Read an identifier from source.
+
+        Returns
+        -------
+        Token
+            A token with the identifier value.
+        """
+        s = first
+        nc = self.__peek_char()
+        while nc.isalnum() or nc == '_':
+            s += self.__next_char()
+            if self.__can_read():
+                nc = self.__peek_char()
             else:
-                tokens.append(t)
-        elif c in ['"', "'"]:
-            tokens.append(read_string(c, nc))
-            nc = next_char() # Consume the quote
-        elif c.isdigit():
-            t, nc = read_number(c, nc)
-            tokens.append(t)
+                break
+        return self.__token("IDENTIFIER", s)
+
+    def __read_number(self, first: str) -> Token:
+        """
+        Read a number from source.
+
+        Returns
+        -------
+        Token
+            A token with the number value.
+        """
+        s = first
+        decimalPoint = False
+        nc = self.__peek_char()
+        while nc.isdigit() or nc == '.':
+            if nc == '.':
+                if decimalPoint:
+                    break
+                decimalPoint = True
+            s += self.__next_char()
+            if self.__can_read():
+                nc = self.__peek_char()
+            else:
+                break
+        return self.__token("NUMBER", float(s))
+
+    def __read_token(self) -> Token:
+        """
+        Tokenize the next character from source.
+
+        Returns
+        -------
+        Token
+            The next token from the source stream.
+        """
+        c = self.__next_char()
+        if c in ['', '\0', None]: return self.__token("EOF")
+        nc = self.__peek_char() # Look ahead one character: LL(1)
+
+        # Whitespace
+        if c in [' ', '\t', '\n', '\r']:
+            return self.__read_token() # Skip whitespace
+        if c in ['"', "'"]:
+            return self.__read_string(c)
+        if c.isdigit():
+            return self.__read_number(c)
+        if c.isalpha() or c == '_':
+            t = self.__read_identifier(c)
+            if t.value in ["true", "false"]:
+                return self.__token("BOOLEAN", t.value == "true")
+            if t.value in ["if", "else", "match", "class", "enum", "while", "for", "break", "continue", "return"]:
+                return self.__token("KEYWORD", t.value)
+            return t
+        # Operators
+        if c == '+' and nc == '=': return self.__token("PLUSEQUAL", c + self.__next_char())
+        if c == '-' and nc == '=': return self.__token("MINUSEQUAL", c + self.__next_char())
+        if c == '*' and nc == '=': return self.__token("TIMESEQUAL", c + self.__next_char())
+        if c == '/' and nc == '=': return self.__token("DIVEQUAL", c + self.__next_char())
+        if c == '%' and nc == '=': return self.__token("MODEQUAL", c + self.__next_char())
+        if c == '^' and nc == '=': return self.__token("POWEQUAL", c + self.__next_char())
+        if c == '<' and nc == '=': return self.__token("LESSEQUAL", c + self.__next_char())
+        if c == '>' and nc == '=': return self.__token("GREATEREQUAL", c + self.__next_char())
+        if c == '!' and nc == '=': return self.__token("NOTEQUAL", c + self.__next_char())
+        if c == '=' and nc == '=': return self.__token("EQUAL", c + self.__next_char())
+        if c == '=' and nc == '>': return self.__token("RIGHTARROW", c + self.__next_char())
+        if c == '&' and nc == '&': return self.__token("AND", c + self.__next_char())
+        if c == '|' and nc == '|': return self.__token("OR", c + self.__next_char())
+        if c == '+': return self.__token("PLUS", c)
+        if c == '-': return self.__token("MINUS", c)
+        if c == '*': return self.__token("MULTIPLY", c)
+        if c == '/': return self.__token("DIVIDE", c)
+        if c == '%': return self.__token("MODULO", c)
+        if c == '^': return self.__token("POWER", c)
+        if c == '<': return self.__token("LESS", c)
+        if c == '>': return self.__token("GREATER", c)
+        if c == '=': return self.__token("ASSIGNMENT", c)
+        if c == '!': return self.__token("NOT", c)
+        if c == '&': return self.__token("BITWISEAND", c)
+        if c == '|': return self.__token("BITWISEOR", c)
+        if c == '~': return self.__token("BITWISENOT", c)
+        if c == '?': return self.__token("QUESTIONMARK", c)
+        if c == '.': return self.__token("DOT", c)
+        if c == ',': return self.__token("COMMA", c)
+        if c == ':': return self.__token("COLON", c)
+        if c == ';': return self.__token("SEMICOLON", c)
+        if c == '{': return self.__token("LBRACE", c)
+        if c == '}': return self.__token("RBRACE", c)
+        if c == '(': return self.__token("LPAREN", c)
+        if c == ')': return self.__token("RPAREN", c)
+        if c == '[': return self.__token("LBRACKET", c)
+        if c == ']': return self.__token("RBRACKET", c)
+        self.__error("Unexpected character: " + c)
+
+
+    def is_done(self):
+        """
+        Check if the lexer is done.
+
+        Returns
+        -------
+        bool
+            True if the lexer is done, False otherwise.
+        """
+        return not self.__can_read() or self.peek_token().name == "EOF"
+
+    def peek_token(self):
+        """
+        Peek at the next token.
+
+        Returns
+        -------
+        Token
+            The next token.
+        """
+        if self.__peeked_token is not None:
+            return self.__peeked_token
         else:
-            raise Exception(f"Unexpected character: {c}")
-    if nc != None and nc != '':
-        raise Exception(f"Unexpected character: '{nc}'")
-    return tokens
+            t = self.next_token()
+            self.__peeked_token = t
+            return t
+
+    def next_token(self):
+        """
+        Get the next token from the source.
+
+        Returns
+        -------
+        Token
+            The next token from the source.
+        """
+        if self.__peeked_token is not None:
+            t = self.__peeked_token
+            self.__peeked_token = None
+            return t
+        else:
+            return self.__read_token()

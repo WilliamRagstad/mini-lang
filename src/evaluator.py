@@ -1,10 +1,8 @@
-from cmath import exp
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, ValueAtom
+from .ast import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
 from .environment import Environment
-from .parser import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, LambdaFunctionNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
 
 # Global variables
-
 debug = False
 
 # Helper functions
@@ -41,7 +39,7 @@ def compatible_type(value: Atom, types: list[str]) -> bool:
 
 def evaluate_expression(expression: Node, env: Environment) -> Atom:
     if isinstance(expression, AtomicNode):
-        if expression.valueType == "Identifier":
+        if expression.valueType == "identifier":
             dprint(f"Evaluating identifier '{expression.value}'")
             val = env.get(expression.value)
             if val is None:
@@ -83,36 +81,36 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         rhs = evaluate_expression(expression.right, env)
         dprint(f"Evaluating binary expression '{lhs} {op} {rhs}'")
 
-        if op == "+" and compatible_types(lhs, rhs, ["string", "number"]):
+        if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number"]):
             if lhs.valueType == "string" or rhs.valueType == "string":
                 return ValueAtom("string", str(lhs.value) + str(rhs.value))
             else:
                 return ValueAtom("number", lhs.value + rhs.value)
-        elif op == "-" and compatible_types(lhs, rhs, ["number"]):
+        elif op == "MINUS" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("number", lhs.value - rhs.value)
-        elif op == "*" and compatible_types(lhs, rhs, ["number"]):
+        elif op == "MULTIPLY" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("number", lhs.value * rhs.value)
-        elif op == "/" and compatible_types(lhs, rhs, ["number"]):
+        elif op == "DIVIDE" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("number", lhs.value / rhs.value)
-        elif op == "%" and compatible_types(lhs, rhs, ["number"]):
+        elif op == "MODULO" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("number", lhs.value % rhs.value)
-        elif op == "^" and compatible_types(lhs, rhs, ["number"]):
+        elif op == "POWER" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("number", lhs.value ** rhs.value)
-        elif op == "==" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
+        elif op == "EQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
             return ValueAtom("boolean", lhs.value == rhs.value)
-        elif op == "!=" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
+        elif op == "NOTEQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
             return ValueAtom("boolean", lhs.value != rhs.value)
-        elif op == "<" and compatible_types(lhs, rhs, ["number"]):
+        elif op == "LESS" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("boolean", lhs.value < rhs.value)
-        elif op == ">" and compatible_types(lhs, rhs, ["number"]):
+        elif op == "GREATER" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("boolean", lhs.value > rhs.value)
-        elif op == "<=" and compatible_types(lhs, rhs, ["number"]):
+        elif op == "LESSEQUAL" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("boolean", lhs.value <= rhs.value)
-        elif op == ">=" and compatible_types(lhs, rhs, ["number"]):
+        elif op == "GREATEREQUAL" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("boolean", lhs.value >= rhs.value)
-        elif op == "&" and compatible_types(lhs, rhs, ["boolean"]):
+        elif op == "AND" and compatible_types(lhs, rhs, ["boolean"]):
             return ValueAtom("boolean", lhs.value and rhs.value)
-        elif op == "|" and compatible_types(lhs, rhs, ["boolean"]):
+        elif op == "OR" and compatible_types(lhs, rhs, ["boolean"]):
             return ValueAtom("boolean", lhs.value or rhs.value)
         else:
             raise Exception(f"Unknown binary operator '{expression.operator}'")
@@ -123,7 +121,7 @@ def evaluate_function_call(fc: FunctionCallNode, env: Environment) -> Atom:
     funcVal = env.get(fc.functionName)
     if funcVal is None:
         raise Exception(f"Function '{fc.functionName}' is not defined")
-    
+
     if isinstance(funcVal, BuiltinFunctionAtom):
         # Check that all arguments are of value types, and then map them to their values
         values = []

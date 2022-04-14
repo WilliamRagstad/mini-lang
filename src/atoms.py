@@ -1,7 +1,7 @@
 # Fundamental value types in the language
 from typing import Callable
 
-from .parser import Node
+from .ast import Node
 
 class Atom():
     """
@@ -13,7 +13,7 @@ class Atom():
         """
         self.name = name
         self.type = type
-    
+
     def __str__(self):
         return f"<{self.type}>"
 
@@ -24,11 +24,17 @@ class ValueAtom(Atom):
     def __init__(self, valueType: str, value):
         """
         Initialize an atomic value node with a value.
+
+        Parameters
+        ----------
+            valueType: The type of the value in lower case.
+                       E.g. "string", "number", "boolean", "unit", "tuple", "list".
+            value: The value of the node.
         """
         super().__init__("Value", valueType)
         self.valueType = valueType
         self.value = value
-    
+
     def listValueToStr(self):
         return list(map(lambda a: str(a), self.value))
 
@@ -74,7 +80,7 @@ class FunctionAtom(Atom):
         self.argumentNames = argumentNames
         self.body = body
         self.environment = environment
-    
+
     def __str__(self):
         return f"<lambda({', '.join(self.argumentNames)})>"
 
@@ -89,6 +95,6 @@ class BuiltinFunctionAtom(Atom):
         super().__init__("Built-in function", "function")
         self.functionName = functionName
         self.func = func
-    
+
     def __str__(self):
         return f"<built-in: {self.functionName}>"

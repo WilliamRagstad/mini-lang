@@ -1,9 +1,10 @@
 from io import open, TextIOBase, StringIO
-from .lexer import tokenize
-from .parser import parse
+
+from .parser import Parser
+from .lexer import Lexer
 from .evaluator import evaluate
 from .environment import Environment
-from .atoms import Atom, BuiltinFunctionAtom, ValueAtom
+from .atoms import BuiltinFunctionAtom, ValueAtom
 
 # Helper functions
 def globalEnvironment():
@@ -18,11 +19,9 @@ def globalEnvironment():
     return env
 
 def execute(input: TextIOBase, env: Environment, debug = False):
-    tokens = tokenize(input, debug)
-    if debug:
-        print("Tokens:")
-        print('    ' + '\n    '.join(str(t) for t in tokens))
-    ast = parse(tokens, debug)
+    lexer = Lexer(input, debug)
+    parser = Parser(lexer, debug)
+    ast = parser.parse()
     if debug:
         print("AST:")
         print('    ' + '\n    '.join(str(e) for e in ast.expressions))
