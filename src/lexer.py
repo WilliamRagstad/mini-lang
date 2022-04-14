@@ -29,8 +29,15 @@ class Lexer:
         self.__debug = debug
         self.__peeked_char: str | None = None # The last character that was peeked
         self.__peeked_token: Token | None = None # The last token that was peeked
+        self.__prev_comment: Token | None = None # The last comment that was read before the previous token
 
     # Helper functions
+    def __dprint(self, *args):
+        """
+        Print debug information.
+        """
+        if self.__debug:
+            print(*args)
     def __token(self, name: str, value = None) -> Token:
         """
         Create a token with the given name and value.
@@ -208,11 +215,13 @@ class Lexer:
                 return self.__token("KEYWORD", t.value)
             return t
         if c == '/' and nc == '/':
+            self.__next_char() # Consume the '/'
             comment = ""
             while self.__can_read() and self.__peek_char() != '\n':
                 comment += self.__next_char()
             return self.__token("COMMENT", comment)
         if c == '/' and nc == '*':
+            self.__next_char() # Consume the '*'
             comment = ""
             while self.__can_read():
                 c = self.__next_char()
@@ -273,7 +282,13 @@ class Lexer:
         """
         return not self.__can_read() or self.peek_token().name == "EOF"
 
-    def peek_token(self):
+    def reset_peek(self):
+        """
+        Reset the peek token.
+        """
+        self.__peeked_token = None
+
+    def peek_token(self, allow_comment = False) -> Token:
         """
         Peek at the next token.
 
@@ -285,11 +300,11 @@ class Lexer:
         if self.__peeked_token is not None:
             return self.__peeked_token
         else:
-            t = self.next_token()
+            t = self.next_token(allow_comment)
             self.__peeked_token = t
             return t
 
-    def next_token(self):
+    def next_token(self, allow_comment = False) -> Token:
         """
         Get the next token from the source.
 
@@ -300,7 +315,14 @@ class Lexer:
         """
         if self.__peeked_token is not None:
             t = self.__peeked_token
-            self.__peeked_token = None
+            self.reset_peek()
             return t
         else:
-            return self.__read_token()
+            t = self.__read_token()
+            if not allow_comment and t.name == "COMMENT":
+                self.__prev_comment = t
+                return self.next_token(False)
+            return t
+
+    def prev_comment(self):
+        return self.__prev_comment

@@ -72,12 +72,17 @@ class Parser:
         """
         Parse a primary expression from the lexer.
         """
+        prev_comment = self.lexer.prev_comment()
         t = self.lexer.next_token()
         if t.name == "IDENTIFIER":
             nt = self.lexer.peek_token()
             if nt.name == 'LPAREN':
                 self.lexer.next_token() # Remove the opening paren
                 args = self.__parse_list_of_expressions("COMMA", "RPAREN")
+                if self.lexer.peek_token().name == "ASSIGNMENT":
+                    self.lexer.next_token() # Remove the assignment
+                    rhs = self.__parse_expression()
+                    return AssignmentNode(t.value, LambdaFunctionNode(args, rhs), prev_comment)
                 return FunctionCallNode(t.value, args)
             elif nt.name == 'LBRACKET':
                 self.lexer.next_token() # Remove the opening bracket
@@ -87,7 +92,7 @@ class Parser:
             elif nt.name == 'ASSIGNMENT':
                 self.lexer.next_token() # Remove the assignment operator
                 rhs = self.__parse_expression()
-                return AssignmentNode(t.value, rhs)
+                return AssignmentNode(t.value, rhs, prev_comment)
             else:
                 return AtomicNode("identifier", t.value)
         elif t.name in ["STRING", "NUMBER", "BOOLEAN"]:

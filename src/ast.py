@@ -69,16 +69,17 @@ class AssignmentNode(Node):
     """
     An assignment node in the abstract syntax tree.
     """
-    def __init__(self, identifier: str, expression: Node):
+    def __init__(self, identifier: str, expression: Node, docstring: str = None):
         """
         Initialize an assignment node with an identifier and an expression.
         """
         super().__init__("Assignment")
         self.identifier = identifier
         self.expression = expression
+        self.docstring = docstring
 
     def __str__(self):
-        return f"{self.name} {self.identifier} = {self.expression}"
+        return f"{self.name}<doc: {self.docstring is not None}> {self.identifier} = {self.expression}"
 
 class UnaryNode(Node):
     """
