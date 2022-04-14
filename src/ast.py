@@ -121,7 +121,7 @@ class IndexingNode(Node):
         """
         Initialize an indexing node with an identifier and an index.
         """
-        super().__init__("Indexing")
+        super().__init__("IndexingExpression")
         self.lhs = lhs
         self.index = index
 
