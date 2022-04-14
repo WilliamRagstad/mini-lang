@@ -131,7 +131,6 @@ class Parser:
         while ((l in precedence_binary_left and precedence_binary_left[l] >= precedence) or
                (l in precedence_binary_right and precedence_binary_right[l] > precedence)):
             op = self.lexer.next_token().name
-            self.__dprint(f"Parsing binary expression with operator '{op}'")
             rhs = self.__parse_primary()
             l = self.lexer.peek_token().name
             while ((l in precedence_binary_left and precedence_binary_left[l] > precedence_binary_left[op]) or
@@ -154,7 +153,5 @@ class Parser:
         program = ProgramNode([])
         while not self.lexer.is_done():
             e = self.__parse_expression()
-            self.__dprint(f"Parsed expression: {e}")
             program.expressions.append(e)
-        self.__dprint(f"Parsed program: {program}")
         return program

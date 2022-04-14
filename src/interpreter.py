@@ -23,10 +23,12 @@ def execute(input: TextIOBase, env: Environment, debug = False):
     parser = Parser(lexer, debug)
     ast = parser.parse()
     if debug:
-        print("AST:")
+        print("== AST ==")
         print('    ' + '\n    '.join(str(e) for e in ast.expressions))
+        print("== Evaluation ==")
     result = evaluate(ast, env, debug)
     if debug:
+        print("== END ==")
         print("Result:", result)
     return result, env
 
