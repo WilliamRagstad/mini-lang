@@ -177,7 +177,10 @@ def parse_expression() -> Node:
             elif nt.value == '[':
                 tokens.pop(0)
                 indexingExpr = parse_expression()
-                
+                if tokens[0].value != ']':
+                    raise Exception("Expected ']'")
+                tokens.pop(0) # Remove the closing bracket
+                lhs = ListNode([indexingExpr])
         elif nt.name == 'AssignmentOperator':
             tokens.pop(0) # Remove the assignment operator
             rhs = parse_expression()
