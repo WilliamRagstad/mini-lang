@@ -20,7 +20,6 @@ class Token():
         """
         return f"{self.name}: '{self.value}' at {self.line}:{self.column}"
 
-
 # Lexer class
 class Lexer:
     def __init__(self, source: TextIOBase, debug = False):
@@ -30,7 +29,6 @@ class Lexer:
         self.__debug = debug
         self.__peeked_char: str | None = None # The last character that was peeked
         self.__peeked_token: Token | None = None # The last token that was peeked
-
 
     # Helper functions
     def __token(self, name: str, value = None) -> Token:
@@ -44,7 +42,6 @@ class Lexer:
         Raise an error with the given message.
         """
         raise Exception(f"Syntax Error at {self.__line}:{self.__column}: {msg}")
-
 
     # Tokenizer functions
     def __can_read(self) -> bool:
@@ -210,6 +207,20 @@ class Lexer:
             if t.value in ["if", "else", "match", "class", "enum", "while", "for", "break", "continue", "return"]:
                 return self.__token("KEYWORD", t.value)
             return t
+        if c == '/' and nc == '/':
+            comment = ""
+            while self.__can_read() and self.__peek_char() != '\n':
+                comment += self.__next_char()
+            return self.__token("COMMENT", comment)
+        if c == '/' and nc == '*':
+            comment = ""
+            while self.__can_read():
+                c = self.__next_char()
+                if c == '*' and self.__peek_char() == '/':
+                    self.__next_char()
+                    break
+                comment += c
+            return self.__token("COMMENT", comment)
         # Operators
         if c == '+' and nc == '=': return self.__token("PLUSEQUAL", c + self.__next_char())
         if c == '-' and nc == '=': return self.__token("MINUSEQUAL", c + self.__next_char())
