@@ -151,6 +151,20 @@ class LambdaFunctionNode(Node):
 tokens: list[Token] = []
 debug = False
 
+# Parsing precedence bindings for order of operations
+precedence = {
+    '^': 30, # Exponentiation
+    '!': 30, # Negation
+    '*': 20, # Multiplication
+    '/': 20, # Division
+    '%': 20, # Modulo
+    '&': 20, # Bitwise/Logic AND
+    '+': 10, # Addition
+    '-': 10, # Subtraction
+    '|': 10, # Bitwise/Logic OR
+    '==': 5, # Equality
+}
+
 # Helper functions
 def dprint(*args):
     """
