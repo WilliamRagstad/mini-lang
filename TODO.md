@@ -52,4 +52,3 @@ This might be a good place to look if you are interested in contributing to the 
 
 - [ ] Documentation generator that parses the source code and generates documentation in markdown format or for the web.
 - [ ] Compiler for the language that compiles the source code to native machine code, LLVM, or for the web.
-- [ ]
