@@ -1,5 +1,5 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, ValueAtom
-from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IndexingNode, LambdaNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, IndexingNode, LambdaNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
 from .environment import Environment
 
 # Global variables
@@ -121,11 +121,15 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         rhs = evaluate_expression(expression.right, env)
         dprint(f"Evaluating binary expression '{lhs} {op} {rhs}'")
 
-        if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number"]):
+        if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "boolean", "list"]):
             if lhs.valueType == "string" or rhs.valueType == "string":
-                return ValueAtom("string", str(lhs.value) + str(rhs.value))
-            else:
+                return ValueAtom("string", repr(lhs) + repr(rhs))
+            elif lhs.valueType == "list" and rhs.valueType == "list":
+                return ValueAtom("list", lhs.value + rhs.value)
+            elif lhs.valueType == "number" and rhs.valueType == "number":
                 return ValueAtom("number", lhs.value + rhs.value)
+            else:
+                raise Exception(f"Cannot add {lhs.valueType} and {rhs.valueType}")
         elif op == "MINUS" and compatible_types(lhs, rhs, ["number"]):
             return ValueAtom("number", lhs.value - rhs.value)
         elif op == "MULTIPLY" and compatible_types(lhs, rhs, ["number"]):
@@ -152,6 +156,15 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             return ValueAtom("boolean", lhs.value and rhs.value)
         elif op == "OR" and compatible_types(lhs, rhs, ["boolean"]):
             return ValueAtom("boolean", lhs.value or rhs.value)
+        elif op == "PLUSEQUAL" and compatible_types(lhs, rhs, ["string", "number"]):
+            if not (isinstance(expression.left, AtomicNode) and expression.left.valueType == "identifier"):
+                raise Exception(f"Left hand side of mutating assignment operator '{op}' must be an identifier")
+            if lhs.valueType == "string" or rhs.valueType == "string":
+                new_value = ValueAtom("string", lhs.value + str(rhs.value))
+            else:
+                new_value = ValueAtom("number", lhs.value + rhs.value)
+            env.set(expression.left.value, new_value)
+            return new_value
         else:
             raise Exception(f"Unknown binary operator '{expression.operator}'")
     else:
