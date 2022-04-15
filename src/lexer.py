@@ -82,6 +82,8 @@ class Lexer:
         if c == '\n':
             self.__line += 1
             self.__column = 1
+        elif c == '\t':
+            self.__column += 4
         else:
             self.__column += 1
         return c
