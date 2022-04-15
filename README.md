@@ -219,6 +219,9 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
         * `[1, 2, 3]` - A list of three integers
         * `[true, false, 'hello', 'world']` - Mixed types
         * `[]` - An empty list
+		* `list[0]` - Access the first element
+		* `list[-1]` - Access the last element
+		* `list[5] = 10` - Set the sixth element to 10
 	* Operators:
 		* `list1 + list2` - Concatenate two lists
 		* `list[index]` - Access an element by index (zero-based)
@@ -250,6 +253,7 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
         * `#{0: 1, 1: 2, 2: 3}` - A map with numeric keys
         * `#{'hello world': 'hello', 'goodbye world': 'goodbye'}` - A map with string keys
         * `#{}` - An empty map
+		* `map['test'] = 123` - Assigns a value to the given key
 	* Operators:
 		* `map1 + map2` - Concatenate two maps together (merge the values of the two maps).
 		* `map[key]` - The value at the given key
