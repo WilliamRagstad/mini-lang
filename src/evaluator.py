@@ -119,43 +119,9 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         op = expression.operator
         lhs = evaluate_expression(expression.left, env)
         rhs = evaluate_expression(expression.right, env)
-        dprint(f"Evaluating binary expression '{lhs} {op} {rhs}'")
-
-        if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "boolean", "list"]):
-            if lhs.valueType == "string" or rhs.valueType == "string":
-                return ValueAtom("string", repr(lhs) + repr(rhs))
-            elif lhs.valueType == "list" and rhs.valueType == "list":
-                return ValueAtom("list", lhs.value + rhs.value)
-            elif lhs.valueType == "number" and rhs.valueType == "number":
-                return ValueAtom("number", lhs.value + rhs.value)
-            else:
-                raise Exception(f"Cannot add {lhs.valueType} and {rhs.valueType}")
-        elif op == "MINUS" and compatible_types(lhs, rhs, ["number"]):
-            return ValueAtom("number", lhs.value - rhs.value)
-        elif op == "MULTIPLY" and compatible_types(lhs, rhs, ["number"]):
-            return ValueAtom("number", lhs.value * rhs.value)
-        elif op == "DIVIDE" and compatible_types(lhs, rhs, ["number"]):
-            return ValueAtom("number", lhs.value / rhs.value)
-        elif op == "MODULO" and compatible_types(lhs, rhs, ["number"]):
-            return ValueAtom("number", lhs.value % rhs.value)
-        elif op == "POWER" and compatible_types(lhs, rhs, ["number"]):
-            return ValueAtom("number", lhs.value ** rhs.value)
-        elif op == "EQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
-            return ValueAtom("boolean", lhs.value == rhs.value)
-        elif op == "NOTEQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
-            return ValueAtom("boolean", lhs.value != rhs.value)
-        elif op == "LESS" and compatible_types(lhs, rhs, ["number"]):
-            return ValueAtom("boolean", lhs.value < rhs.value)
-        elif op == "GREATER" and compatible_types(lhs, rhs, ["number"]):
-            return ValueAtom("boolean", lhs.value > rhs.value)
-        elif op == "LESSEQUAL" and compatible_types(lhs, rhs, ["number"]):
-            return ValueAtom("boolean", lhs.value <= rhs.value)
-        elif op == "GREATEREQUAL" and compatible_types(lhs, rhs, ["number"]):
-            return ValueAtom("boolean", lhs.value >= rhs.value)
-        elif op == "AND" and compatible_types(lhs, rhs, ["boolean"]):
-            return ValueAtom("boolean", lhs.value and rhs.value)
-        elif op == "OR" and compatible_types(lhs, rhs, ["boolean"]):
-            return ValueAtom("boolean", lhs.value or rhs.value)
+        if expression.operator in ["PLUS", "MINUS", "MULTIPLY", "DIVIDE", "MODULO", "POWER", "EQUAL", "NOTEQUAL",
+                                   "LESS", "GREATER", "LESSEQUAL", "GREATEREQUAL", "AND", "OR"]:
+            return evaluate_binary_atom_expression(expression.operator, lhs, rhs, env)
         elif op == "PLUSEQUAL" and compatible_types(lhs, rhs, ["string", "number"]):
             if not (isinstance(expression.left, AtomicNode) and expression.left.valueType == "identifier"):
                 raise Exception(f"Left hand side of mutating assignment operator '{op}' must be an identifier")
@@ -166,9 +132,60 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             env.set(expression.left.value, new_value)
             return new_value
         else:
-            raise Exception(f"Unknown binary operator '{expression.operator}'")
+            raise Exception(f"Unknown binary operator '{op}'")
     else:
         raise Exception(f"Unknown expression type '{type(expression)}'")
+
+def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environment) -> Atom:
+    dprint(f"Evaluating binary expression '{lhs} {op} {rhs}'")
+    if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "boolean", "list", "tuple"]):
+        if lhs.valueType == "string" or rhs.valueType == "string":
+            return ValueAtom("string", repr(lhs) + repr(rhs))
+        elif lhs.valueType == "list" and rhs.valueType == "list":
+            return ValueAtom("list", lhs.value + rhs.value)
+        elif lhs.valueType == "number" and rhs.valueType == "number":
+            return ValueAtom("number", lhs.value + rhs.value)
+        elif lhs.valueType == "tuple" and rhs.valueType == "tuple":
+            # Ensure that the tuples have the same length
+            if len(lhs.value) != len(rhs.value):
+                raise Exception(f"Tuple length mismatch: {len(lhs.value)} and {len(rhs.value)}")
+            new_value = []
+            for i in range(len(lhs.value)):
+                dprint(f"Evaluating {lhs.value[i]} {op} {rhs.value[i]}")
+                new_value.append(evaluate_binary_atom_expression("PLUS", lhs.value[i], rhs.value[i], env))
+            return ValueAtom("tuple", new_value)
+        else:
+            raise Exception(f"Cannot add {lhs.valueType} and {rhs.valueType}")
+    elif op == "MINUS" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("number", lhs.value - rhs.value)
+    elif op == "MULTIPLY" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("number", lhs.value * rhs.value)
+    elif op == "DIVIDE" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("number", lhs.value / rhs.value)
+    elif op == "MODULO" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("number", lhs.value % rhs.value)
+    elif op == "POWER" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("number", lhs.value ** rhs.value)
+    elif op == "EQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean", "unit", "tuple", "list"]):
+        if lhs.valueType != rhs.valueType:
+            return ValueAtom("boolean", False)
+        return ValueAtom("boolean", lhs.value == rhs.value)
+    elif op == "NOTEQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
+        return ValueAtom("boolean", lhs.value != rhs.value)
+    elif op == "LESS" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("boolean", lhs.value < rhs.value)
+    elif op == "GREATER" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("boolean", lhs.value > rhs.value)
+    elif op == "LESSEQUAL" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("boolean", lhs.value <= rhs.value)
+    elif op == "GREATEREQUAL" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("boolean", lhs.value >= rhs.value)
+    elif op == "AND" and compatible_types(lhs, rhs, ["boolean"]):
+        return ValueAtom("boolean", lhs.value and rhs.value)
+    elif op == "OR" and compatible_types(lhs, rhs, ["boolean"]):
+        return ValueAtom("boolean", lhs.value or rhs.value)
+    else:
+        raise Exception(f"Unknown binary operator '{op}'")
 
 def evaluate_function_call(fc: FunctionCallNode, env: Environment) -> Atom:
     funcVal = env.get(fc.functionName)
