@@ -1,23 +1,35 @@
 # Parser class
 from .lexer import Lexer, Token
-from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IndexingNode, LambdaNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, IndexingNode, LambdaNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
 
 # Left associative infix operators binding powers
 precedence_binary_left = {
-    'POWER':    30,
-    'NOT':      30,
-    'MULTIPLY': 20,
-    'DIVIDE':   20,
-    'MODULO':   20,
-    'PLUS':     10,
-    'MINUS':    10,
-    'EQUAL':    5,
+    'MULTIPLY': 120,
+    'DIVIDE':   120,
+    'MODULO':   120,
+    'PLUS':     110,
+    'MINUS':    110,
+    'BITWISEAND': 90,
+    'BITWISEOR': 70,
+    'LESS':     60,
+    'LESSEQUAL':60,
+    'GREATER':  60,
+    'GREATEREQUAL': 60,
+    'NOTEQUAL': 60,
+    'EQUAL':    60,
+    'PLUSEQUAL': 50,
+    'MINUSEQUAL': 50,
+    'TIMESEQUAL': 50,
+    'DIVEQUAL': 50,
+    'MODEQUAL': 50,
+    'POWEQUAL': 50,
 }
 
 # Right associative infix operators binding powers
 precedence_binary_right = {
-    'AND':      20,
-    'OR':       10,
+    'POWER':    140,
+    'AND':      40,
+    'OR':       30,
 }
 
 # Parser class
@@ -124,6 +136,8 @@ class Parser:
         elif t.name in ["STRING", "NUMBER", "BOOLEAN"]:
             return AtomicNode(t.name.lower(), t.value)
         elif t.name == "KEYWORD":
+            if t.value == "if":
+                return self.__parse_if()
             raise Exception(f"Keyword '{t.value}' is not implemented!")
         elif t.name == "LPAREN":
             lhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN"))
@@ -166,6 +180,29 @@ class Parser:
                 l = self.lexer.peek_token().name
             lhs = BinaryNode(op, lhs, rhs)
         return lhs
+
+    def __parse_if(self) -> Node:
+        """
+        Parse an if expression from the lexer.
+        """
+        cond = self.__parse_expression()
+        ifBody = self.__parse_expression()
+        elseIfs = []
+        elseBody = None
+        nt = self.lexer.peek_token()
+        while nt.name == "KEYWORD" and nt.value == "else":
+            self.lexer.next_token() # Remove the else keyword
+            # Peek and see if the next token is a chained if expression
+            nt = self.lexer.peek_token()
+            if nt.name == "KEYWORD" and nt.value == "if":
+                self.lexer.next_token() # Remove the if keyword
+                elseIfCond = self.__parse_expression()
+                elseIfBody = self.__parse_expression()
+                elseIfs.append((elseIfCond, elseIfBody))
+            else:
+                elseBody = self.__parse_expression()
+                break
+        return IfNode(cond, ifBody, elseIfs, elseBody)
 
     def __parse_expression(self) -> Node:
         """

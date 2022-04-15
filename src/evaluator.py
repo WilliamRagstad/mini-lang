@@ -90,6 +90,22 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             return element
         else:
             raise Exception(f"Expression of type {value.type} does not support indexing")
+    elif isinstance(expression, IfNode):
+        cond = evaluate_expression(expression.condition, env)
+        if not isinstance(cond, ValueAtom) or not cond.valueType == "boolean":
+            raise Exception(f"Condition does not evaluate to a boolean")
+        if cond.value:
+            return evaluate_expression(expression.ifBody, env)
+        else:
+            # Iterate over the else-ifs
+            for cond, body in expression.elseIfs:
+                cond = evaluate_expression(cond, env)
+                if not isinstance(cond, ValueAtom) or not cond.valueType == "boolean":
+                    raise Exception(f"Condition does not evaluate to a boolean")
+                if cond.value:
+                    return evaluate_expression(body, env)
+            # Evaluate the else body
+            return evaluate_expression(expression.elseBody, env)
     elif isinstance(expression, UnaryNode):
         op = expression.operator
         rhs = evaluate_expression(expression.rhs, env)

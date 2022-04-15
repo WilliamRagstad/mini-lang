@@ -173,3 +173,18 @@ class LambdaNode(Node):
 
     def __str__(self):
         return f"{self.name} ({self.params} => {self.body})"
+
+class IfNode(Node):
+    """
+    An if node in the abstract syntax tree.
+    Contains a condition and body togehter with an optional if else statements and else body.
+    """
+    def __init__(self, condition: Node, ifBody: Node, elseIfs: list[tuple[Node, Node]] = [], elseBody: Node = None):
+        """
+        Initialize an if node with a condition, if body and an optional else body and else ifs.
+        """
+        super().__init__("If")
+        self.condition = condition
+        self.ifBody = ifBody
+        self.elseBody = elseBody
+        self.elseIfs = elseIfs
