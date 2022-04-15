@@ -1,6 +1,6 @@
 # Parser class
 from .lexer import Lexer, Token
-from .ast import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, IndexingNode, LambdaFunctionNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IndexingNode, LambdaNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
 
 # Left associative infix operators binding powers
 precedence_binary_left = {
@@ -68,6 +68,19 @@ class Parser:
         self.lexer.next_token() # Remove the end delimiter
         return expressions
 
+    def __parse_expressions_until(self, end_delimiter: str) -> list[Node]:
+        """
+        Parse a list of expressions from the lexer and return them as a list.
+        The expressions are ended with the given end delimiter.
+        """
+        expressions = []
+        nt = self.lexer.peek_token()
+        while nt.name != end_delimiter:
+            expressions.append(self.__parse_expression())
+            nt = self.lexer.peek_token()
+        self.lexer.next_token()
+        return expressions
+
     def __ident_list_to_str(self, nodes: list[Node]) -> list[str]:
         """
         Convert and verify a list of identifiers and return a list of strings.
@@ -95,7 +108,7 @@ class Parser:
                     rhs = self.__parse_expression()
                     # Convert args to list of strings
                     args = self.__ident_list_to_str(args)
-                    return AssignmentNode(t.value, LambdaFunctionNode(args, rhs), prev_comment)
+                    return AssignmentNode(t.value, LambdaNode(args, rhs), prev_comment)
                 return FunctionCallNode(t.value, args)
             elif nt.name == 'LBRACKET':
                 self.lexer.next_token() # Remove the opening bracket
@@ -123,11 +136,13 @@ class Parser:
                 args = self.__ident_list_to_str(lhs.elements)
                 # Parse the body of the lambda
                 body = self.__parse_expression()
-                return LambdaFunctionNode(args, body)
+                return LambdaNode(args, body)
             else:
                 return lhs
         elif t.name == "LBRACKET":
             return ListNode(self.__parse_list_of_expressions("COMMA", "RBRACKET"))
+        elif t.name == "LBRACE":
+            return BlockNode(self.__parse_expressions_until("RBRACE"))
         elif t.name in ["MINUS", "NOT"]:
             return UnaryNode(t.name, self.__parse_primary())
         else:

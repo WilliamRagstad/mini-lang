@@ -1,5 +1,5 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, ValueAtom
-from .ast import AssignmentNode, AtomicNode, BinaryNode, FunctionCallNode, IndexingNode, LambdaFunctionNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IndexingNode, LambdaNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
 from .environment import Environment
 
 # Global variables
@@ -43,7 +43,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             dprint(f"Evaluating identifier '{expression.value}'")
             val = env.get(expression.value)
             if val is None:
-                raise Exception(f"Identifier '{expression.value}' is not defined")
+                raise Exception(f"identifier '{expression.value}' is not defined")
             return val
         else:
             return ValueAtom(expression.valueType, expression.value)
@@ -56,6 +56,8 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             return ValueAtom("tuple", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
     elif isinstance(expression, ListNode):
         return ValueAtom("list", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
+    elif isinstance(expression, BlockNode):
+        return evaluate_expressions(expression.expressions, Environment(f"<block>", env))
     elif isinstance(expression, AssignmentNode):
         dprint(f"Evaluating assignment {expression.identifier} = {expression.expression}")
         value = evaluate_expression(expression.expression, env)
@@ -63,7 +65,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         return value
     elif isinstance(expression, FunctionCallNode):
         return evaluate_function_call(expression, env)
-    elif isinstance(expression, LambdaFunctionNode):
+    elif isinstance(expression, LambdaNode):
         return FunctionAtom(expression.params, expression.body, env)
     elif isinstance(expression, IndexingNode):
         indexAtom = evaluate_expression(expression.index, env)

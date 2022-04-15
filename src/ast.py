@@ -30,12 +30,26 @@ class AtomicNode(Node):
         """
         Initialize an atomic expression node with a value.
         """
-        super().__init__("AtomicExpression")
+        super().__init__("Atomic")
         self.valueType = valueType
         self.value = value
 
     def __str__(self):
         return f"{self.name} {self.valueType}({self.value})"
+
+class BlockNode(Node):
+    """
+    A block node in the abstract syntax tree.
+    """
+    def __init__(self, expressions: list[Node]):
+        """
+        Initialize a block node with a list of expressions.
+        """
+        super().__init__("Block")
+        self.expressions = expressions
+
+    def __str__(self):
+        return '{' + '; '.join(map(str, self.expressions)) + '}'
 
 class TupleNode(Node):
     """
@@ -79,7 +93,7 @@ class AssignmentNode(Node):
         self.docstring = docstring
 
     def __str__(self):
-        return f"{self.name}<doc: {self.docstring is not None}> {self.identifier} = {self.expression}"
+        return f"{self.name} {self.identifier} = {self.expression}"
 
 class UnaryNode(Node):
     """
@@ -90,7 +104,7 @@ class UnaryNode(Node):
         Initialize a unary expression node with an operator and a right
         expression.
         """
-        super().__init__("UnaryExpression")
+        super().__init__("Unary")
         self.operator = operator
         self.rhs = rhs
 
@@ -106,7 +120,7 @@ class BinaryNode(Node):
         Initialize a binary expression node with an operator, left and right
         expressions.
         """
-        super().__init__("BinaryExpression")
+        super().__init__("Binary")
         self.operator = operator
         self.left = left
         self.right = right
@@ -122,7 +136,7 @@ class IndexingNode(Node):
         """
         Initialize an indexing node with an identifier and an index.
         """
-        super().__init__("IndexingExpression")
+        super().__init__("Indexing")
         self.lhs = lhs
         self.index = index
 
@@ -145,7 +159,7 @@ class FunctionCallNode(Node):
     def __str__(self):
         return f"{self.name} {self.functionName}({', '.join(map(str, self.arguments))})"
 
-class LambdaFunctionNode(Node):
+class LambdaNode(Node):
     """
     A lambda function node in the abstract syntax tree.
     """
@@ -153,7 +167,7 @@ class LambdaFunctionNode(Node):
         """
         Initialize a lambda function node with a list of parameters and a body.
         """
-        super().__init__("LambdaFunction")
+        super().__init__("Lambda")
         self.params = params
         self.body = body
 
