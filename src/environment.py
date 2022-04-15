@@ -17,7 +17,7 @@ class Environment():
 
     def set(self, name: str, value: Atom) -> None:
         self.values[name] = value
-    
+
     def get(self, name: str):
         if name in self.values:
             return self.values[name]
