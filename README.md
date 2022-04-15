@@ -716,7 +716,7 @@ else "not in range"
 Check if value is a key in a map. If `x` would be `2` for example, `x` would be in the map and the condition would be true.
 
 ```ts
-if x in {1: "one", 2: "two", 3: "three"} "in map"
+if x in #{1: "one", 2: "two", 3: "three"} "in map"
 else "not in map"
 ```
 
