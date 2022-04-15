@@ -61,7 +61,9 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         for key, value in expression.pairs.items():
             if not isinstance(key, AtomicNode):
                 raise Exception(f"Key in map is not an atomic value")
-            if key.valueType == "number" and key.value.is_integer(): key.valueType = "integer"
+            if key.valueType == "number" and key.value.is_integer():
+                key.value = int(key.value)
+                key.valueType = "integer"
             if key.valueType not in ["identifier", "string", "integer"]:
                 raise Exception(f"Key in map is not an identifier, string or integer number")
             value = evaluate_expression(value, env)
@@ -148,7 +150,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
 
 def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environment) -> Atom:
     dprint(f"Evaluating binary expression '{lhs} {op} {rhs}'")
-    if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "boolean", "list", "tuple"]):
+    if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "boolean", "list", "tuple", "map"]):
         if lhs.valueType == "string" or rhs.valueType == "string":
             return ValueAtom("string", repr(lhs) + repr(rhs))
         elif lhs.valueType == "list" and rhs.valueType == "list":
@@ -164,6 +166,11 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
                 dprint(f"Evaluating {lhs.value[i]} {op} {rhs.value[i]}")
                 new_value.append(evaluate_binary_atom_expression("PLUS", lhs.value[i], rhs.value[i], env))
             return ValueAtom("tuple", new_value)
+        elif lhs.valueType == "map" and rhs.valueType == "map":
+            # Concate the maps
+            for key, value in rhs.value.items():
+                lhs.value[key] = value
+            return lhs
         else:
             raise Exception(f"Cannot add {lhs.valueType} and {rhs.valueType}")
     elif op == "MINUS" and compatible_types(lhs, rhs, ["number"]):
@@ -176,7 +183,7 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
         return ValueAtom("number", lhs.value % rhs.value)
     elif op == "POWER" and compatible_types(lhs, rhs, ["number"]):
         return ValueAtom("number", lhs.value ** rhs.value)
-    elif op == "EQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean", "unit", "tuple", "list"]):
+    elif op == "EQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean", "unit", "tuple", "list", "map"]):
         if lhs.valueType != rhs.valueType:
             return ValueAtom("boolean", False)
         return ValueAtom("boolean", lhs.value == rhs.value)

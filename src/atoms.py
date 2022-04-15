@@ -42,6 +42,8 @@ class ValueAtom(Atom):
         value = str(self.value)
         if self.valueType == "string":
             return f"'{value}'"
+        elif self.valueType == "number" and self.value.is_integer():
+            return str(int(self.value))
         elif self.valueType == "boolean":
             return value.lower()
         elif self.valueType == "unit":
@@ -50,22 +52,14 @@ class ValueAtom(Atom):
             return '(' + ", ".join(self.listValueToStr()) + ')'
         elif self.valueType == "list":
             return '[' + ", ".join(self.listValueToStr()) + ']'
-        elif self.valueType == "number" and self.value.is_integer():
-            return str(int(self.value))
+        elif self.valueType == "map":
+            return '#{' + ", ".join(map(lambda t: f"{t[0]}: {t[1]}", self.value.items())) + '}'
         return value
 
     def __repr__(self) -> str:
-        value = str(self.value)
-        if self.valueType == "boolean":
-            return value.lower()
-        elif self.valueType == "unit":
-            return "()"
-        elif self.valueType == "tuple":
-            return '(' + ", ".join(self.listValueToStr()) + ')'
-        elif self.valueType == "list":
-            return '[' + ", ".join(self.listValueToStr()) + ']'
-        elif self.valueType == "number" and self.value.is_integer():
-            return str(int(self.value))
+        value = str(self)
+        if self.valueType == "string":
+            return self.value
         return value
 
 class FunctionAtom(Atom):
