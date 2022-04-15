@@ -1,5 +1,5 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, ValueAtom
-from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, IndexingNode, LambdaNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, IndexingNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
 from .environment import Environment
 
 # Global variables
@@ -56,6 +56,17 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             return ValueAtom("tuple", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
     elif isinstance(expression, ListNode):
         return ValueAtom("list", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
+    elif isinstance(expression, MapNode):
+        map_values: dict[str | int, Atom] = {}
+        for key, value in expression.pairs.items():
+            if not isinstance(key, AtomicNode):
+                raise Exception(f"Key in map is not an atomic value")
+            if key.valueType == "number" and key.value.is_integer(): key.valueType = "integer"
+            if key.valueType not in ["identifier", "string", "integer"]:
+                raise Exception(f"Key in map is not an identifier, string or integer number")
+            value = evaluate_expression(value, env)
+            map_values[key.value] = value
+        return ValueAtom("map", map_values)
     elif isinstance(expression, BlockNode):
         return evaluate_expressions(expression.expressions, Environment(f"<block>", env))
     elif isinstance(expression, AssignmentNode):
@@ -82,10 +93,9 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             raise Exception(f"Indexing expression does not evaluate to an integer or string")
         value = evaluate_expression(expression.lhs, env)
         if isinstance(value, ValueAtom):
-            if value.type == "list":
-                element = value.value[index]
-            elif value.type == "tuple":
-                element = value.value[index]
+            if value.type not in ["list", "tuple", "map"]:
+                raise Exception(f"Cannot index a value of type '{value.type}'")
+            element = value.value[index]
             dprint(f"Indexing {value.type}: {value.value} with index {index} -> {element}")
             return element
         else:

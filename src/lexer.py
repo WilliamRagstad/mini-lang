@@ -246,6 +246,7 @@ class Lexer:
         if c == '=' and nc == '>': return self.__token("RIGHTARROW", c + self.__next_char())
         if c == '&' and nc == '&': return self.__token("AND", c + self.__next_char())
         if c == '|' and nc == '|': return self.__token("OR", c + self.__next_char())
+        if c == '#' and nc == '{': return self.__token("HASHBRACE", c + self.__next_char())
         if c == '+': return self.__token("PLUS", c)
         if c == '-': return self.__token("MINUS", c)
         if c == '*': return self.__token("MULTIPLY", c)

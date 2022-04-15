@@ -80,6 +80,20 @@ class ListNode(Node):
     def __str__(self):
         return '[' + ", ".join(map(str, self.elements)) + ']'
 
+class MapNode(Node):
+    """
+    A hash map node in the abstract syntax tree.
+    """
+    def __init__(self, pairs: dict[Node, Node]):
+        """
+        Initialize a map node with a list of elements.
+        """
+        super().__init__("Map")
+        self.pairs = pairs
+
+    def __str__(self):
+        return '{' + ', '.join(map(lambda t: f"{t[0]}: {t[1]}", self.pairs.items())) + '}'
+
 class AssignmentNode(Node):
     """
     An assignment node in the abstract syntax tree.

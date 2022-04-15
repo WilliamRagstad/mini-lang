@@ -1,6 +1,6 @@
 # Parser class
 from .lexer import Lexer, Token
-from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, IndexingNode, LambdaNode, ListNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, IndexingNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
 
 # Left associative infix operators binding powers
 precedence_binary_left = {
@@ -155,6 +155,8 @@ class Parser:
                 return lhs
         elif t.name == "LBRACKET":
             return ListNode(self.__parse_list_of_expressions("COMMA", "RBRACKET"))
+        elif t.name == "HASHBRACE":
+            return self.__parse_hash_map()
         elif t.name == "LBRACE":
             return BlockNode(self.__parse_expressions_until("RBRACE"))
         elif t.name in ["MINUS", "NOT"]:
@@ -181,7 +183,29 @@ class Parser:
             lhs = BinaryNode(op, lhs, rhs)
         return lhs
 
-    def __parse_if(self) -> Node:
+    def __parse_hash_map(self) -> MapNode:
+        """
+        Parse a hash map from the lexer.
+        Example: { "key1" : "value1", "key2" : "value2", 12 : "value3" }
+        """
+        pairs = {}
+        nt = self.lexer.peek_token()
+        while nt.name != "RBRACE":
+            key = self.__parse_primary()
+            self.__expect("COLON")
+            value = self.__parse_expression()
+            if key in pairs:
+                raise Exception(f"Duplicate key '{key}' in hash map!")
+            pairs[key] = value
+            nt = self.lexer.peek_token()
+            if nt.name == "COMMA":
+                self.lexer.next_token()
+            elif nt.name != "RBRACE":
+                self.__error(f"Expected 'COMMA' or 'RBRACE' but got '{nt.name}'", nt)
+        self.lexer.next_token() # Remove the end delimiter
+        return MapNode(pairs)
+
+    def __parse_if(self) -> IfNode:
         """
         Parse an if expression from the lexer.
         """
