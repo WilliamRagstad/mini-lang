@@ -219,9 +219,11 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
         * `[1, 2, 3]` - A list of three integers
         * `[true, false, 'hello', 'world']` - Mixed types
         * `[]` - An empty list
+	* Operators:
+		* `list1 + list2` - Concatenate two lists
+		* `list[index]` - Access an element by index (zero-based)
     * Methods:
         * `list.length` - The number of values in the list
-        * `list[index]` - The value at the given index
         * `list.append(value)` - Adds a value to the end of the list
         * `list.prepend(value)` - Adds a value to the beginning of the list
         * `list.pop()` - Removes and returns the last value in the list
@@ -237,17 +239,21 @@ Primitive data types are useful, but limiting on their own. `mini` has a number 
         * `(1, 2, 3)` - A tuple of three integers
         * `('hello', 'world')` - A tuple of two strings
         * `()` - An empty tuple, or `unit`. **This should be treated the same as `null` in other languages.**
+	* Operators:
+		* `tuple1 + tuple2` - Add the values of two tuples together (element-wise).
+        * `tuple[index]` - The value at the given index
     * Methods:
         * `tuple.length` - The number of values in the tuple
-        * `tuple[index]` - The value at the given index
 * `map` - A disorderly collection of hashed key-value pairs, where each key can be accessed by index.
     * Examples:
         * `#{a: 1, b: 2, c: 3}` - A map of three key-value pairs
         * `#{0: 1, 1: 2, 2: 3}` - A map with numeric keys
         * `#{'hello world': 'hello', 'goodbye world': 'goodbye'}` - A map with string keys
         * `#{}` - An empty map
+	* Operators:
+		* `map1 + map2` - Concatenate two maps together (merge the values of the two maps).
+		* `map[key]` - The value at the given key
     * Methods:
-        * `map[key]` - The value associated with the given key
         * `map.<key>` - The value associated with the given key, ie. `map.abc` is equivalent to `map['abc']`
         * `map.has(key)` - Returns `true` if the map contains the given key
         * `map.delete(key)` - Removes the value associated with the given key
@@ -760,7 +766,7 @@ for i in 1.. {
 ## Contribute! 🎉
 Contributions of all kinds are welcome, not only in the form of **code** but also with regards to the official **documentation**, **debugging** help and **tickets/issues** in the bug tracker, support of other users on the **community** forum or the official discord and also **financially**.
 
-If you think something is bad about the `mini` language or the article series written about it, please **help in any way to make it better** instead of just complaining about it.
+If you think something is bad about the `mini` language or the article series written about it, please **help in any way to make it better** instead of complaining about it.
 
 For information about how to go about submitting bug reports or pull requests, please see the project's [Contribution Guidelines](https://github.com/WilliamRagstad/mini-lang/blob/main/CONTRIBUTING.md).
 
