@@ -73,12 +73,13 @@ The language has a rich set of features, including:
 
 * Basic arithmetic, logic, and comparison operators
 * Primitive data types such as `number`, `boolean`, and `string`
-* Variables
-* C-stlye Comments
-* Lambda expressions and functions
 * Collection data structures like `list`, `tuple`, `map`, and `set`
-* Enum types
+* Lambda expressions and functions
 * Classes and inheritance
+* Enum types
+* Variables
+* Code blocks
+* C-stlye Comments
 * A set of built-in functions
 * Basic control flow structures
 * Other keywords and operators
@@ -136,6 +137,16 @@ This is useful for catching all values in a pattern match.
 match x
     10 -> "ten"
     _ -> "other" // Catch all values not already matched
+```
+
+Variables can also be set to the return value of a code block.
+
+```js
+x = {
+	y = 10
+	y * 2
+}
+x // 20
 ```
 
 ### Comments
