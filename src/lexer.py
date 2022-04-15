@@ -236,7 +236,7 @@ class Lexer:
         if c == '+' and nc == '=': return self.__token("PLUSEQUAL", c + self.__next_char())
         if c == '-' and nc == '=': return self.__token("MINUSEQUAL", c + self.__next_char())
         if c == '*' and nc == '=': return self.__token("TIMESEQUAL", c + self.__next_char())
-        if c == '/' and nc == '=': return self.__token("DIVIDEEQUAL", c + self.__next_char())
+        if c == '/' and nc == '=': return self.__token("DIVEQUAL", c + self.__next_char())
         if c == '%' and nc == '=': return self.__token("MODEQUAL", c + self.__next_char())
         if c == '^' and nc == '=': return self.__token("POWEQUAL", c + self.__next_char())
         if c == '<' and nc == '=': return self.__token("LESSEQUAL", c + self.__next_char())
