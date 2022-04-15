@@ -130,11 +130,22 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
     elif isinstance(expression, BinaryNode):
         op = expression.operator
         lhs = evaluate_expression(expression.left, env)
+        if op == "DOT":
+            # Member access, last identifier is the member name and the rest is the object
+            if expression.right.valueType != "identifier":
+                raise Exception(f"Cannot access member of {lhs.type} with non-identifier key")
+            if not (isinstance(lhs, ValueAtom) and lhs.type in ["map", "tuple", "list"]):
+                raise Exception(f"Cannot access member of {lhs.type}")
+            if lhs.valueType == "map":
+                if expression.right.value not in lhs.value:
+                    raise Exception(f"Map does not contain key '{expression.right.value}'")
+                return lhs.value[expression.right.value]
+            raise Exception(f"Cannot access member of {lhs.type}, not implemented yet")
         rhs = evaluate_expression(expression.right, env)
-        if expression.operator in ["PLUS", "MINUS", "MULTIPLY", "DIVIDE", "MODULO", "POWER", "EQUAL", "NOTEQUAL",
+        if op in ["PLUS", "MINUS", "MULTIPLY", "DIVIDE", "MODULO", "POWER", "EQUAL", "NOTEQUAL",
                                    "LESS", "GREATER", "LESSEQUAL", "GREATEREQUAL", "AND", "OR"]:
-            return evaluate_binary_atom_expression(expression.operator, lhs, rhs, env)
-        elif op == "PLUSEQUAL" and compatible_types(lhs, rhs, ["string", "number"]):
+            return evaluate_binary_atom_expression(op, lhs, rhs, env)
+        if op == "PLUSEQUAL" and compatible_types(lhs, rhs, ["string", "number"]):
             if not (isinstance(expression.left, AtomicNode) and expression.left.valueType == "identifier"):
                 raise Exception(f"Left hand side of mutating assignment operator '{op}' must be an identifier")
             if lhs.valueType == "string" or rhs.valueType == "string":

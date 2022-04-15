@@ -22,3 +22,8 @@ print(b)
 print(c)
 print("Result:")
 print(b + c)
+
+print("Member access:", b.one, b.one == 1)
+
+d = #{deeper: #{nested: 42 } }
+print("Nested access:", d.deeper.nested, d.deeper.nested == 42)

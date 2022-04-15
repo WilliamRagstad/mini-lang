@@ -4,6 +4,7 @@ from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCall
 
 # Left associative infix operators binding powers
 precedence_binary_left = {
+    'DOT': 150,
     'MULTIPLY': 120,
     'DIVIDE':   120,
     'MODULO':   120,
