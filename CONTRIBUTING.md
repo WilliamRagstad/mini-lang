@@ -17,3 +17,5 @@ to **fix bugs, add new and improve on existing functionality** instead of doing
 nothing but ticket management.
 
 ## Pull requests
+
+## Article series

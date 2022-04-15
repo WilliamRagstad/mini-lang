@@ -783,7 +783,38 @@ Contributions of all kinds are welcome, not only in the form of **code** but als
 
 If you think something is bad about the `mini` language or the article series written about it, please **help in any way to make it better** instead of complaining about it.
 
-For information about how to go about submitting bug reports or pull requests, please see the project's [Contribution Guidelines](https://github.com/WilliamRagstad/mini-lang/blob/main/CONTRIBUTING.md).
+For information about how to go about submitting bug reports or pull requests, please see the project's [contribution guidelines](https://github.com/WilliamRagstad/mini-lang/blob/main/CONTRIBUTING.md).
+
+### 1. Perfecting the language 👑
+There is much more to the language than just the syntax, and there are several ways to improve it.
+Optimizing the interpreter and compiler is one of the most important aspects of the tooling for a language.
+Do consider contributing to the [mini-lang project](https://github.com/WilliamRagstad/mini-lang) to make your own improvements.
+
+Do you have your own ideas for improvements? Are they specialized in a certain area or controversial in nature?
+Please create your own version of the language by forking it on GitHub and sharing your changes!
+
+### 2. Improve the documentation 📝
+The documentation is a great source of information for anyone who wants to learn the language.
+It is also a great source of information for anyone who wants to contribute to the project.
+
+If you are a regular user of the language, you can help improve the documentation by creating a pull request to the official [documentation repository](https://github.com/WilliamRagstad/mini-lang).
+
+### 3. Expand the ecosystem 🏕️
+There are numerous ways of contributing to the `mini` language, one of which is to contribute code to the [official repository](https://github.com/WilliamRagstad/mini-lang), but there are also many other ways to contribute.
+
+* Consider building projects in `mini` and publish your projects on GitHub.
+* Expand on the tools and libraries that are already available for `mini` and publish your own, look at the todo list and the [third-party tools](/TODO.md#Third-party-tools) section.
+
+### 4. Get involved in the community 🫂
+The best way to show support and help is to get involved in the community! There are many ways to get involved, start by joining the [official discord](https://discord.gg/YzjQZjh) and ask questions, share your ideas and discuss the language there! It is a great place to learn about the language and to get help with any issues you might have, or to even help out with the development of the language.
+
+### 5. Improve the article series 📚
+If you are a writer and want to contribute to the article series, please see the [contributing to the article series](/CONTRIBUTING#Article-series) section.
+
+Other ways to contribute to the article series include:
+* Commenting on the articles
+* Writing articles about the language
+* Writing articles about the language and the project
 
 ## License
 This project is licensed under the [MIT license](https://github.com/WilliamRagstad/mini-lang/blob/main/LICENSE).
