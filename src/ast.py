@@ -35,7 +35,7 @@ class AtomicNode(Node):
         self.value = value
 
     def __str__(self):
-        return f"{self.name} {self.valueType}({self.value})"
+        return f"{self.valueType}({self.value})"
 
 class BlockNode(Node):
     """
@@ -93,7 +93,7 @@ class AssignmentNode(Node):
         self.docstring = docstring
 
     def __str__(self):
-        return f"{self.name} {self.identifier} = {self.expression}"
+        return f"{self.identifier} = {self.expression}"
 
 class UnaryNode(Node):
     """
@@ -109,7 +109,7 @@ class UnaryNode(Node):
         self.rhs = rhs
 
     def __str__(self):
-        return f"{self.name} {self.operator}({self.rhs})"
+        return f"{self.operator}({self.rhs})"
 
 class BinaryNode(Node):
     """
@@ -126,7 +126,7 @@ class BinaryNode(Node):
         self.right = right
 
     def __str__(self):
-        return f"{self.name} ({self.left} {self.operator} {self.right})"
+        return f"({self.left} {self.operator} {self.right})"
 
 class IndexingNode(Node):
     """
@@ -141,7 +141,7 @@ class IndexingNode(Node):
         self.index = index
 
     def __str__(self):
-        return f"{self.name} {self.lhs}[{self.index}]"
+        return f"{self.lhs}[{self.index}]"
 
 class FunctionCallNode(Node):
     """
@@ -157,7 +157,7 @@ class FunctionCallNode(Node):
         self.arguments = arguments
 
     def __str__(self):
-        return f"{self.name} {self.functionName}({', '.join(map(str, self.arguments))})"
+        return f"{self.functionName}({', '.join(map(str, self.arguments))})"
 
 class LambdaNode(Node):
     """
@@ -172,7 +172,7 @@ class LambdaNode(Node):
         self.body = body
 
     def __str__(self):
-        return f"{self.name} ({self.params} => {self.body})"
+        return f"({self.params} => {self.body})"
 
 class IfNode(Node):
     """
