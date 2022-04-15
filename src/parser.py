@@ -136,9 +136,7 @@ class Parser:
     def __parse_binary_expression(self, lhs: Node, precedence: int) -> Node:
         """
         Parse a binary expression from the lexer.
-
         Should only be called from within `__parse_binary_expression` itself.
-
         Ref: https://en.wikipedia.org/wiki/Operator-precedence_parser#Pratt_parsing
         """
         l = self.lexer.peek_token().name
