@@ -43,6 +43,7 @@ Below are some things that need to be done, as well as some ideas for future dev
 
 ### Future development
 
+- [ ] Type system, incremental type checking, and type inference, or static typing.
 - [ ] Range indexing for lists and strings\
 	Examples:
 	- `list[0:2]` returns the first two elements of the list.
