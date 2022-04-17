@@ -135,8 +135,8 @@ This is useful for catching all values in a pattern match.
 
 ```fs
 match x
-    10 -> "ten"
-    _ -> "other" // Catch all values not already matched
+    | 10 -> "ten"
+    | _ -> "other" // Catch all values not already matched
 ```
 
 Variables can also be set to the return value of a code block.
@@ -313,12 +313,12 @@ print(queue.pop()) // 2
 Lists have support for partial pattern matching, utilizing the `|` operator to separate elements from the rest of the list in a pattern match.
 You can extract values from different collections using pattern matching as shown below.
 
-```ts
+```fs
 match [1, 2, 3]
-    [f, s | t] => print(f, s, t) // 1 2 [3]
-    [h | t] => print(h) // 1
-    [] => print('empty list') // empty list
-    _ => print('other') // other type
+    | [f, s | t] => print(f, s, t) // 1 2 [3]
+    | [h | t] => print(h) // 1
+    | [] => print('empty list') // empty list
+    | _ => print('other') // other type
 ```
 
 ```cs
@@ -333,10 +333,10 @@ Maps have also support for partial pattern matching.
 
 ```fs
 match #{a: 1, b: 2, c: 3}
-    #{a: f, b: s} => print(f, s) // 1 2
-    #{a: f} => print(f) // 1
-    #{} => print('empty map') // empty map
-    _ => print('other') // other type
+    | #{a: f, b: s} => print(f, s) // 1 2
+    | #{a: f} => print(f) // 1
+    | #{} => print('empty map') // empty map
+    | _ => print('other') // other type
 ```
 
 > A **Set** is a collection of unique values.\
@@ -548,11 +548,14 @@ else "none"
 >
 > The `match` statement matches a value against a set of patterns, and returns the value of the first pattern that matches.
 
+First specify the value to match against, then specify a list of patterns separated by `|` characters.
+The first pattern that matches the value is the one that gets evaluated and returned.
+
 ```fs
 match x
-    1 => "one"
-    2 => "two"
-    _ => "many"
+    | 1 => "one"
+    | 2 => "two"
+    | _ => "many"
 ```
 
 One could think of match as many `if x is p` statements combined into a single statement.
@@ -561,10 +564,17 @@ A match case can also have a guard using the `if` keyword, which ensures that th
 
 ```fs
 match x
-    number(n) if n > 0 => "positive"
-    number(n) if n < 0 => "negative"
-    number(n) if n == 0 => "zero"
-    _ => "not a number"
+    | number(n) if n > 0 => "positive"
+    | number(n) if n < 0 => "negative"
+    | number(n) if n == 0 => "zero"
+    | _ => "not a number"
+```
+
+You can also inline the pattern list, which is useful when the pattern list is short.
+
+```fs
+x = Optional.Some(1)
+match x | Some(n) => "some" | None => "none"
 ```
 
 > **`for` statement**

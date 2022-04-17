@@ -14,10 +14,10 @@ Below are some things that need to be done, as well as some ideas for future dev
 	- `(a, b) = (1, 2)` Binds `a` to `1` and `b` to `2`.
 	- `(c, d, e) = tuple` Binds the tuple elements to `c`, `d` and `e` if it has the same number of elements.
 	- `[f, s | t] = [1, 2, 3, 4]` Binds `f` to `1`, `s` to `2`, and `t` to `[3, 4]`.
+- [ ] Implementing the `match` statement.
 - [ ] Implement enum types.
 - [ ] Implement atom types. (Atom types are types that can only be created once and cannot be changed.)\
 	Example: `atm = :hello_world` then `atm == :hello_world` is always true.
-- [ ] Implementing the `match` statement.
 - [ ] Expand standard library.
 	- [ ] Filesystem, open files and read/write contents.
 	- [ ] Networking.
