@@ -36,7 +36,7 @@ Below are some things that need to be done, as well as some ideas for future dev
 	- [ ] More algorithms such as sorting, searching, and hashing.
 	- [ ] Type casting functions for converting between types. `number("1.5")`, `string([])` or similar.
 - [ ] Implementing the `import` statement with support for relative paths.
-- [ ] Module system.
+- [ ] Module system with import and export keywords.
 - [ ] Bootstrapping the language and writing a native compiler for it.
 - [ ] Implementing classes with support for inheritance, polymorphism and static methods.
 
