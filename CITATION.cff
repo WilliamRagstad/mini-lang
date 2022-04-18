@@ -1,0 +1,14 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: The mini programming language
+message: >-
+  If you want to cite any documentation or
+  implementation of the mini programming language,
+  this is how you should do it.
+type: software
+authors:
+  - given-names: William
+    family-names: Rågstad
+    email: william.ragstad@gmail.com
