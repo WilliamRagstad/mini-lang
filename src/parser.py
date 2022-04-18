@@ -1,10 +1,12 @@
 # Parser class
 from .lexer import Lexer, Token
-from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, IndexingNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
 
 # Left associative infix operators binding powers
 precedence_binary_left = {
-    'DOT': 150,
+    'DOT': 160,
+    'INDEX': 150,
+    'POWER':    140,
     'MULTIPLY': 120,
     'DIVIDE':   120,
     'MODULO':   120,
@@ -24,11 +26,6 @@ precedence_binary_left = {
     'DIVEQUAL': 50,
     'MODEQUAL': 50,
     'POWEQUAL': 50,
-}
-
-# Right associative infix operators binding powers
-precedence_binary_right = {
-    'POWER':    140,
     'AND':      40,
     'OR':       30,
 }
@@ -123,11 +120,11 @@ class Parser:
                     args = self.__ident_list_to_str(args)
                     return AssignmentNode(t.value, LambdaNode(args, rhs), prev_comment)
                 return FunctionCallNode(t.value, args)
-            elif nt.name == 'LBRACKET':
-                self.lexer.next_token() # Remove the opening bracket
-                index = self.__parse_expression()
-                self.__expect("RBRACKET")
-                return IndexingNode(AtomicNode("identifier", t.value), index)
+            # elif nt.name == 'INDEX':
+            #     self.lexer.next_token() # Remove the opening bracket
+            #     index = self.__parse_expression()
+            #     self.__expect("RBRACKET")
+            #     return IndexingNode(AtomicNode("identifier", t.value), index)
             elif nt.name == 'ASSIGNMENT':
                 self.lexer.next_token() # Remove the assignment operator
                 rhs = self.__parse_expression()
@@ -172,13 +169,16 @@ class Parser:
         Ref: https://en.wikipedia.org/wiki/Operator-precedence_parser#Pratt_parsing
         """
         l = self.lexer.peek_token().name
-        while ((l in precedence_binary_left and precedence_binary_left[l] >= precedence) or
-               (l in precedence_binary_right and precedence_binary_right[l] > precedence)):
+        while (l in precedence_binary_left and precedence_binary_left[l] >= precedence):
             op = self.lexer.next_token().name
-            rhs = self.__parse_primary()
+            if op == "INDEX":
+                self.__dprint(f"Parsing indexing expression")
+                rhs = self.__parse_expression()
+                self.__expect("RBRACKET")
+            else:
+                rhs = self.__parse_primary()
             l = self.lexer.peek_token().name
-            while ((l in precedence_binary_left and precedence_binary_left[l] > precedence_binary_left[op]) or
-                   (l in precedence_binary_right and precedence_binary_right[l] == precedence_binary_right[op])):
+            while l in precedence_binary_left and precedence_binary_left[l] > precedence_binary_left[op]:
                 rhs = self.__parse_binary_expression(rhs, precedence_binary_left[l])
                 l = self.lexer.peek_token().name
             lhs = BinaryNode(op, lhs, rhs)

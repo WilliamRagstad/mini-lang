@@ -143,21 +143,6 @@ class BinaryNode(Node):
     def __str__(self):
         return f"({self.left} {self.operator} {self.right})"
 
-class IndexingNode(Node):
-    """
-    An indexing node in the abstract syntax tree.
-    """
-    def __init__(self, lhs: Node, index: Node):
-        """
-        Initialize an indexing node with an identifier and an index.
-        """
-        super().__init__("Indexing")
-        self.lhs = lhs
-        self.index = index
-
-    def __str__(self):
-        return f"{self.lhs}[{self.index}]"
-
 class FunctionCallNode(Node):
     """
     A function call node in the abstract syntax tree.

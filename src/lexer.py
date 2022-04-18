@@ -27,6 +27,7 @@ class Lexer:
         self.__line = 1
         self.__column = 1
         self.__debug = debug
+        self.__prev_char: str = None # Previously read character
         self.__peeked_char: str | None = None # The last character that was peeked
         self.__peeked_token: Token | None = None # The last token that was peeked
         self.__prev_comment: Token | None = None # The last comment that was read before the previous token
@@ -86,6 +87,7 @@ class Lexer:
             self.__column += 4
         else:
             self.__column += 1
+        self.__prev_char = c
         return c
 
     def __peek_char(self):
@@ -198,6 +200,7 @@ class Lexer:
         Token
             The next token from the source stream.
         """
+        pc = self.__prev_char
         c = self.__next_char()
         if c in ['', '\0', None]: return self.__token("EOF")
         nc = self.__peek_char() # Look ahead one character: LL(1)
@@ -269,7 +272,10 @@ class Lexer:
         if c == '}': return self.__token("RBRACE", c)
         if c == '(': return self.__token("LPAREN", c)
         if c == ')': return self.__token("RPAREN", c)
-        if c == '[': return self.__token("LBRACKET", c)
+        if c == '[':
+            if pc.isalnum() or pc in ['_', ']', '}', ')']:
+                return self.__token("INDEX", c) # Indexing
+            return self.__token("LBRACKET", c) # Normal bracket
         if c == ']': return self.__token("RBRACKET", c)
         self.__error("Unexpected character: " + c)
 
@@ -325,6 +331,7 @@ class Lexer:
             if not allow_comment and t.name == "COMMENT":
                 self.__prev_comment = t
                 return self.next_token(False)
+            self.__dprint("  " + str(t))
             return t
 
     def prev_comment(self):

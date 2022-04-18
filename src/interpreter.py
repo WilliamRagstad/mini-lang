@@ -21,6 +21,8 @@ def globalEnvironment():
 def execute(input: TextIOBase, env: Environment, debug = False):
     lexer = Lexer(input, debug)
     parser = Parser(lexer, debug)
+    if debug:
+        print("== Tokens ==")
     ast = parser.parse()
     if debug:
         print("== AST ==")
