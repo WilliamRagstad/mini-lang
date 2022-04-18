@@ -120,11 +120,6 @@ class Parser:
                     args = self.__ident_list_to_str(args)
                     return AssignmentNode(t.value, LambdaNode(args, rhs), prev_comment)
                 return FunctionCallNode(t.value, args)
-            # elif nt.name == 'INDEX':
-            #     self.lexer.next_token() # Remove the opening bracket
-            #     index = self.__parse_expression()
-            #     self.__expect("RBRACKET")
-            #     return IndexingNode(AtomicNode("identifier", t.value), index)
             elif nt.name == 'ASSIGNMENT':
                 self.lexer.next_token() # Remove the assignment operator
                 rhs = self.__parse_expression()
