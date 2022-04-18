@@ -191,6 +191,9 @@ class Lexer:
                 break
         return self.__token("NUMBER", float(s))
 
+    def __is_end_of_expression(self, c: str) -> bool:
+        return c.isalnum() or c in ['_', ']', '}', ')']
+
     def __read_token(self) -> Token:
         """
         Tokenize the next character from source.
@@ -270,10 +273,13 @@ class Lexer:
         if c == ';': return self.__token("SEMICOLON", c)
         if c == '{': return self.__token("LBRACE", c)
         if c == '}': return self.__token("RBRACE", c)
-        if c == '(': return self.__token("LPAREN", c)
+        if c == '(':
+            if self.__is_end_of_expression(pc):
+                return self.__token("CALL", c) # Treat as a function call
+            return self.__token("LPAREN", c) # Normal parenthesis
         if c == ')': return self.__token("RPAREN", c)
         if c == '[':
-            if pc.isalnum() or pc in ['_', ']', '}', ')']:
+            if self.__is_end_of_expression(pc):
                 return self.__token("INDEX", c) # Indexing
             return self.__token("LBRACKET", c) # Normal bracket
         if c == ']': return self.__token("RBRACKET", c)
