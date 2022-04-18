@@ -1,7 +1,15 @@
 # Fundamental value types in the language
 from typing import Callable
-
 from .ast import Node
+
+unique_id = 0
+def get_unique_id() -> int:
+    """
+    Get a unique id for a node.
+    """
+    global unique_id
+    unique_id += 1
+    return unique_id - 1
 
 class Atom():
     """
@@ -11,11 +19,12 @@ class Atom():
         """
         Initialize an atom with a name and a type.
         """
+        self.uid = get_unique_id()
         self.name = name
         self.type = type
 
     def __str__(self):
-        return f"<{self.type}>"
+        return f"<{self.uid}:{self.type}>"
 
 class ValueAtom(Atom):
     """
@@ -66,7 +75,7 @@ class FunctionAtom(Atom):
     """
     A function node in the abstract syntax tree.
     """
-    def __init__(self, argumentNames: list[str], body: Node, environment):
+    def __init__(self, argumentNames: list[str], body: Node, environment, name: str = None):
         """
         Initialize a function node with a function name, argument names, body and the environment in which it was defined.
         """
@@ -74,9 +83,10 @@ class FunctionAtom(Atom):
         self.argumentNames = argumentNames
         self.body = body
         self.environment = environment
+        self.name = name if name is not None else "lambda"
 
     def __str__(self):
-        return f"<lambda({', '.join(self.argumentNames)})>"
+        return f"<{self.uid}:{self.name}({', '.join(self.argumentNames)})>"
 
 class BuiltinFunctionAtom(Atom):
     """
