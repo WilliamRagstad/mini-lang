@@ -12,3 +12,5 @@ authors:
   - given-names: William
     family-names: Rågstad
     email: william.ragstad@gmail.com
+repository-code: 'https://github.com/mini-lang/mini-lang'
+license: MIT
