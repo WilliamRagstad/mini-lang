@@ -110,8 +110,8 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         lhs = evaluate_expression(expression.left, env)
         if op == "DOT":
             # Member access, last identifier is the member name and the rest is the object
-            dprint(f"Evaluating member access {lhs} . {expression.right} ({expression.right.__class__})")
-            if (not (isinstance(expression.right, AtomicNode) and expression.right.valueType == "identifier")):
+            dprint(f"Evaluating member access {lhs}.{expression.right} ({expression.right.__class__})")
+            if not (isinstance(expression.right, AtomicNode) and expression.right.valueType == "identifier"):
                 raise Exception(f"Cannot access member of {lhs.type} with non-identifier key")
             if not (isinstance(lhs, ValueAtom) and lhs.type in ["map", "tuple", "list"]):
                 raise Exception(f"Cannot access member of {lhs.type}")
