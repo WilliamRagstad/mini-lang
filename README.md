@@ -20,8 +20,6 @@ The language is dynamically typed and expression-based. It is designed to be eas
 
 It is not intended to be a full language, but rather a language that can be expanded upon and explore new and more advanced concepts in language design.
 
-Test
-
 
 <br/>
 <!-- Start Document Outline -->
