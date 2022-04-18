@@ -833,8 +833,11 @@ If you are a writer and want to contribute to the article series, please see the
 
 Other ways to contribute to the article series include:
 * Commenting on the articles
-* Writing articles about the language
+* Writing articles about the series
 * Writing articles about the language and the project
+
+> ### Citation
+> Correctly cite and refer to the `mini` programming language and the article series by using the `🗨️ Cite this repository` button in the right-hand sidebar of this repository.
 
 ## License
 This project is licensed under the [MIT license](https://github.com/WilliamRagstad/mini-lang/blob/main/LICENSE).
