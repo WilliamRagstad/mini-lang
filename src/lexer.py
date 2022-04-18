@@ -285,7 +285,6 @@ class Lexer:
         if c == ']': return self.__token("RBRACKET", c)
         self.__error("Unexpected character: " + c)
 
-
     def is_done(self):
         """
         Check if the lexer is done.
