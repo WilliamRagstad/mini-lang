@@ -7,7 +7,9 @@ print(
 
 pi = 3.141592653589793
 tau = () => 2*pi
-print(tau())
+print(tau(), tau())
 
 f(x) = 2*x + 1
 print(f(2))
+
+print( (() => "IIFE")() + " works!" )
