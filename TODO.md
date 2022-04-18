@@ -4,6 +4,7 @@ Below are some things that need to be done, as well as some ideas for future dev
 - [ ] Setting values on hash map objects.\
 	Example: `map[key] = value`
 - [ ] Propper error handling. Pretty printed errors with detailed information about the error location, type, and message. Take inspiration from other languages.
+- [ ] Function variations, variables that are assigned lambdas should have support for overloading with different signatures. Correct function should be found using pattern matching on the argument list or simply matching by the number of arguments passed to the function.
 - [ ] Implementing the `for` loop.
 - [ ] Implementing the `while` loop.
 - [ ] Implementing pattern matching with support for complex patterns.\
