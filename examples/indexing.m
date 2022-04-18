@@ -1,4 +1,5 @@
 a = #{b: #{c: 40}}
+print(a.b.c + 2)
 print(a.b['' + 'c'] + 2)
 print(a['b']['c'] + 2)
 
