@@ -665,7 +665,7 @@ while x < 10 {
     print(x)
 }
 ```
-The example above prints all odd numbers from 1 to 10. E.g. `1, 3, 5, 7, 9`.
+The example above prints all odd numbers from 1 to 10. E.g. 1, 3, 5, 7, 9.
 
 
 > **`return` statement**
