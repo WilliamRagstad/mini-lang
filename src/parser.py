@@ -1,10 +1,11 @@
 # Parser class
 from .lexer import Lexer, Token
-from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
 
 # Left associative infix operators binding powers
-precedence_binary_left = {
+precedence_left = {
     'DOT': 160,
+    'CALL': 150,
     'INDEX': 150,
     'POWER':    140,
     'MULTIPLY': 120,
@@ -28,6 +29,7 @@ precedence_binary_left = {
     'POWEQUAL': 50,
     'AND':      40,
     'OR':       30,
+    'ASSIGNMENT': 20,
 }
 
 # Parser class
@@ -108,25 +110,7 @@ class Parser:
         """
         prev_comment = self.lexer.prev_comment()
         t = self.lexer.next_token()
-        if t.name == "IDENTIFIER":
-            nt = self.lexer.peek_token()
-            if nt.name == 'LPAREN':
-                self.lexer.next_token() # Remove the opening paren
-                args = self.__parse_list_of_expressions("COMMA", "RPAREN")
-                if self.lexer.peek_token().name == "ASSIGNMENT":
-                    self.lexer.next_token() # Remove the assignment
-                    rhs = self.__parse_expression()
-                    # Convert args to list of strings
-                    args = self.__ident_list_to_str(args)
-                    return AssignmentNode(t.value, LambdaNode(args, rhs), prev_comment)
-                return FunctionCallNode(t.value, args)
-            elif nt.name == 'ASSIGNMENT':
-                self.lexer.next_token() # Remove the assignment operator
-                rhs = self.__parse_expression()
-                return AssignmentNode(t.value, rhs, prev_comment)
-            else:
-                return AtomicNode("identifier", t.value)
-        elif t.name in ["STRING", "NUMBER", "BOOLEAN"]:
+        if t.name in ["IDENTIFIER", "STRING", "NUMBER", "BOOLEAN"]:
             return AtomicNode(t.name.lower(), t.value)
         elif t.name == "KEYWORD":
             if t.value == "if":
@@ -164,17 +148,25 @@ class Parser:
         Ref: https://en.wikipedia.org/wiki/Operator-precedence_parser#Pratt_parsing
         """
         l = self.lexer.peek_token().name
-        while (l in precedence_binary_left and precedence_binary_left[l] >= precedence):
+        while (l in precedence_left and precedence_left[l] >= precedence):
             op = self.lexer.next_token().name
             if op == "INDEX":
                 self.__dprint(f"Parsing indexing expression")
                 rhs = self.__parse_expression()
                 self.__expect("RBRACKET")
+            elif op == 'CALL':
+                rhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN"))
+                # if self.lexer.peek_token().name == "ASSIGNMENT":
+                #     self.lexer.next_token() # Remove the assignment
+                #     rhs = self.__parse_expression()
+                #     # Convert args to list of strings
+                #     args = self.__ident_list_to_str(args)
+                #     return AssignmentNode(t.value, LambdaNode(args, rhs), prev_comment)
             else:
                 rhs = self.__parse_primary()
             l = self.lexer.peek_token().name
-            while l in precedence_binary_left and precedence_binary_left[l] > precedence_binary_left[op]:
-                rhs = self.__parse_binary_expression(rhs, precedence_binary_left[l])
+            while l in precedence_left and precedence_left[l] > precedence_left[op]:
+                rhs = self.__parse_binary_expression(rhs, precedence_left[l])
                 l = self.lexer.peek_token().name
             lhs = BinaryNode(op, lhs, rhs)
         return lhs

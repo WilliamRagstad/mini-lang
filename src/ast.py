@@ -94,22 +94,6 @@ class MapNode(Node):
     def __str__(self):
         return '{' + ', '.join(map(lambda t: f"{t[0]}: {t[1]}", self.pairs.items())) + '}'
 
-class AssignmentNode(Node):
-    """
-    An assignment node in the abstract syntax tree.
-    """
-    def __init__(self, identifier: str, expression: Node, docstring: str = None):
-        """
-        Initialize an assignment node with an identifier and an expression.
-        """
-        super().__init__("Assignment")
-        self.identifier = identifier
-        self.expression = expression
-        self.docstring = docstring
-
-    def __str__(self):
-        return f"{self.identifier} = {self.expression}"
-
 class UnaryNode(Node):
     """
     A unary node in the abstract syntax tree.
@@ -142,22 +126,6 @@ class BinaryNode(Node):
 
     def __str__(self):
         return f"({self.left} {self.operator} {self.right})"
-
-class FunctionCallNode(Node):
-    """
-    A function call node in the abstract syntax tree.
-    """
-    def __init__(self, functionName: str, arguments: list[Node]):
-        """
-        Initialize a function call node with a function name and a list of
-        arguments.
-        """
-        super().__init__("FunctionCall")
-        self.functionName = functionName
-        self.arguments = arguments
-
-    def __str__(self):
-        return f"{self.functionName}({', '.join(map(str, self.arguments))})"
 
 class LambdaNode(Node):
     """

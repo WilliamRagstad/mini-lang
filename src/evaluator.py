@@ -1,5 +1,5 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, ValueAtom
-from .ast import AssignmentNode, AtomicNode, BinaryNode, BlockNode, FunctionCallNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
 from .environment import Environment
 
 # Global variables
@@ -37,9 +37,14 @@ def compatible_type(value: Atom, types: list[str]) -> bool:
     else:
         raise Exception(f"Incompatible types: {value.valueType} and {types}")
 
+def is_identifier(expression: Node) -> bool:
+    return isinstance(expression, AtomicNode) and expression.valueType == "identifier"
+
+# Evaluation functions
+
 def evaluate_expression(expression: Node, env: Environment) -> Atom:
     if isinstance(expression, AtomicNode):
-        if expression.valueType == "identifier":
+        if is_identifier(expression):
             dprint(f"Evaluating identifier '{expression.value}'")
             val = env.get(expression.value)
             if val is None:
@@ -58,7 +63,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         return ValueAtom("list", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
     elif isinstance(expression, MapNode):
         map_values: dict[str | int, Atom] = {}
-        for key, value in expression.pairs.items():
+        for key, functionValue in expression.pairs.items():
             if not isinstance(key, AtomicNode):
                 raise Exception(f"Key in map is not an atomic value")
             if key.valueType == "number" and key.value.is_integer():
@@ -66,18 +71,11 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                 key.valueType = "integer"
             if key.valueType not in ["identifier", "string", "integer"]:
                 raise Exception(f"Key in map is not an identifier, string or integer number")
-            value = evaluate_expression(value, env)
-            map_values[key.value] = value
+            functionValue = evaluate_expression(functionValue, env)
+            map_values[key.value] = functionValue
         return ValueAtom("map", map_values)
     elif isinstance(expression, BlockNode):
         return evaluate_expressions(expression.expressions, Environment(f"<block>", env))
-    elif isinstance(expression, AssignmentNode):
-        dprint(f"Evaluating assignment {expression.identifier} = {expression.expression}")
-        value = evaluate_expression(expression.expression, env)
-        env.set(expression.identifier, value)
-        return value
-    elif isinstance(expression, FunctionCallNode):
-        return evaluate_function_call(expression, env)
     elif isinstance(expression, LambdaNode):
         return FunctionAtom(expression.params, expression.body, env)
     elif isinstance(expression, IfNode):
@@ -107,11 +105,41 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
             raise Exception(f"Unkown unary operator '{op}'")
     elif isinstance(expression, BinaryNode):
         op = expression.operator
+
+        if op == "ASSIGNMENT":
+            dprint(f"Evaluating assignment {expression.left} = {expression.right}")
+            if is_identifier(expression.left):
+                rhs = evaluate_expression(expression.right, env)
+                env.set(expression.left.value, rhs)
+                return rhs
+            elif isinstance(expression.left, BinaryNode) and expression.left.operator == "CALL":
+                # Function declaration
+                functionName = expression.left.left
+                if not is_identifier(functionName):
+                    raise Exception(f"Function name is not an identifier")
+                args = expression.left.right
+                # Check that the arguments is a a tuple of identifiers
+                if not isinstance(args, TupleNode):
+                    raise Exception(f"Function arguments are not a tuple")
+                argNames: list[str] = []
+                for a in args.elements:
+                    if not isinstance(a, AtomicNode) or a.valueType != "identifier":
+                        raise Exception(f"Function argument '{a}' is not an identifier")
+                    argNames.append(a.value)
+                # Assign the right hand side as body of the function
+                body = expression.right
+                functionValue = FunctionAtom(argNames, body, env, functionName.value)
+                # Update the environment
+                env.set(functionName.value, functionValue)
+                return functionValue
+            else:
+                raise Exception(f"Invalid assignment, left hand side is not an identifier, function or valid pattern")
+
         lhs = evaluate_expression(expression.left, env)
         if op == "DOT":
             # Member access, last identifier is the member name and the rest is the object
             dprint(f"Evaluating member access {lhs}.{expression.right} ({expression.right.__class__})")
-            if not (isinstance(expression.right, AtomicNode) and expression.right.valueType == "identifier"):
+            if not is_identifier(expression.right):
                 raise Exception(f"Cannot access member of {lhs.type} with non-identifier key")
             if not (isinstance(lhs, ValueAtom) and lhs.type in ["map", "tuple", "list"]):
                 raise Exception(f"Cannot access member of {lhs.type}")
@@ -120,14 +148,15 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                     raise Exception(f"Map does not contain key '{expression.right.value}'")
                 return lhs.value[expression.right.value]
             raise Exception(f"Cannot access member of {lhs.type}, not implemented yet")
-        # The rest of the operators rely on the right hand side being evaluated first
+
         rhs = evaluate_expression(expression.right, env)
+        # The rest of the operators rely on the right hand side being evaluated first
         # Try to evaluate binary operators first
         binOpResult = evaluate_binary_atom_expression(op, lhs, rhs, env)
         if binOpResult is not None:
             return binOpResult
         if op == "PLUSEQUAL" and compatible_types(lhs, rhs, ["string", "number"]):
-            if not (isinstance(expression.left, AtomicNode) and expression.left.valueType == "identifier"):
+            if not is_identifier(expression.left):
                 raise Exception(f"Left hand side of mutating assignment operator '{op}' must be an identifier")
             if lhs.valueType == "string" or rhs.valueType == "string":
                 new_value = ValueAtom("string", lhs.value + str(rhs.value))
@@ -207,34 +236,42 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
         element = lhs.value[index]
         dprint(f"Indexing {lhs.type}: {lhs.value} with index {index} -> {element}")
         return element
+    elif op == "CALL":
+        # The tuple may have been evaluated to a single value
+        args = [rhs]
+        if isinstance(rhs, ValueAtom):
+            if rhs.valueType == "tuple":
+                args: list[Atom] = rhs.value
+            elif rhs.valueType == "unit":
+                args = []
+        # args = list(map(lambda e: evaluate_expression(e, env), rhs.value))
+        if isinstance(lhs, FunctionAtom):
+            return evaluate_function_call(lhs, args, env)
+        elif isinstance(lhs, BuiltinFunctionAtom):
+            return evaluate_builtin_function_call(lhs, args, env)
+        else:
+            raise Exception(f"Cannot call non-function: {lhs}")
+
     return None
 
-def evaluate_function_call(fc: FunctionCallNode, env: Environment) -> Atom:
-    funcVal = env.get(fc.functionName)
-    if funcVal is None:
-        raise Exception(f"Function '{fc.functionName}' is not defined")
+def evaluate_function_call(function: FunctionAtom, args: list[Atom], env: Environment) -> Atom:
+    # Build a new environment for the function call
+    # where the arguments are bound to the parameters
+    funcEnv = Environment(f"<function {function.name}>", function.environment)
+    if len(args) != len(function.argumentNames):
+        raise Exception(f"Function '{function.name}' expects {len(function.argumentNames)} arguments, but got {len(args)}")
+    for name, val in zip(function.argumentNames, args):
+        funcEnv.set(name, val)
+    return evaluate_expression(function.body, funcEnv)
 
-    if isinstance(funcVal, BuiltinFunctionAtom):
-        # Check that all arguments are of value types, and then map them to their values
-        values = []
-        for arg in fc.arguments:
-            dprint(f"Evaluating argument '{arg}'")
-            argValue = evaluate_expression(arg, env)
-            if not isinstance(argValue, ValueAtom):
-                raise Exception(f"Argument '{arg}' does not evaluate to an atomic value")
-            values.append(repr(argValue))
-        return funcVal.func(*values)
-    elif isinstance(funcVal, FunctionAtom):
-        # Build a new environment for the function call
-        # where the arguments are bound to the parameters
-        funcEnv = Environment(f"<function {fc.functionName}>", funcVal.environment)
-        if len(fc.arguments) != len(funcVal.argumentNames):
-            raise Exception(f"Function '{fc.functionName}' expects {len(funcVal.argumentNames)} arguments, but got {len(fc.arguments)}")
-        for name, exp in zip(funcVal.argumentNames, fc.arguments):
-            funcEnv.set(name, evaluate_expression(exp, env))
-        return evaluate_expression(funcVal.body, funcEnv)
-    else:
-        raise Exception(f"The variable '{fc.functionName}' is not a function")
+def evaluate_builtin_function_call(function: BuiltinFunctionAtom, args: list[Atom], env: Environment) -> Atom:
+    # Check that all arguments are of value types, and then map them to their values
+    values = []
+    for a in args:
+        if not isinstance(a, ValueAtom):
+            raise Exception(f"Argument '{a}' does not evaluate to an atomic value")
+        values.append(repr(a))
+    return function.func(*values)
 
 def evaluate_expressions(expressions: list[Node], env: Environment) -> Atom:
     """
