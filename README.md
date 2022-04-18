@@ -43,12 +43,12 @@ It is not intended to be a full language, but rather a language that can be expa
   * [Built-in functions](#built-in-functions)
   * [Control flow structures](#control-flow-structures)
   * [Other keywords and operators](#other-keywords-and-operators)
-- [Contribute! 🎉](#contribute----)
-  1. [Perfecting the language 👑](#1-perfecting-the-language---)
-  2. [Improve the documentation 📝](#2-improve-the-documentation---)
-  3. [Expand the ecosystem 🏕️](#3-expand-the-ecosystem----)
-  4. [Get involved in the community 🫂](#4-get-involved-in-the-community---)
-  5. [Improve the article series 📚](#5-improve-the-article-series---)
+- [Contribute! 🎉](#contribute-)
+  1. [Perfecting the language 👑](#1-perfecting-the-language-)
+  2. [Improve the documentation 📝](#2-improve-the-documentation-)
+  3. [Expand the ecosystem 🏕️](#3-expand-the-ecosystem-%EF%B8%8F)
+  4. [Get involved in the community 🫂](#4-get-involved-in-the-community-)
+  5. [Improve the article series 📚](#5-improve-the-article-series-)
 - [License](#license)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
