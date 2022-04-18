@@ -18,6 +18,7 @@ Below are some things that need to be done, as well as some ideas for future dev
 - [ ] Implement enum types.
 - [ ] Implement atom types. (Atom types are types that can only be created once and cannot be changed.)\
 	Example: `atm = :hello_world` then `atm == :hello_world` is always true.
+- [ ] Unicode support for identifiers and atoms. (Strings already support unicode encodings)
 - [ ] Expand standard library.
 	- [ ] Filesystem, open files and read/write contents.
 	- [ ] Networking.
