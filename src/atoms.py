@@ -48,11 +48,10 @@ class ValueAtom(Atom):
         return list(map(lambda a: str(a), self.value))
 
     def __str__(self) -> str:
-        value = str(self.value)
         if self.valueType == "string":
-            return f"'{value}'"
+            return f"'{self.value}'"
         elif self.valueType == "boolean":
-            return value.lower()
+            return str(self.value).lower()
         elif self.valueType == "unit":
             return "()"
         elif self.valueType == "tuple":
