@@ -192,7 +192,7 @@ class Lexer:
         return self.__token("NUMBER", float(s))
 
     def __is_end_of_expression(self, c: str) -> bool:
-        return c.isalnum() or c in ['_', ']', '}', ')']
+        return (c is not None) and (c.isalnum() or c in ['_', ']', '}', ')'])
 
     def __read_token(self) -> Token:
         """
