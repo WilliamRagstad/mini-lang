@@ -71,6 +71,9 @@ class ValueAtom(Atom):
             return self.value
         return value
 
+    def __eq__(self, __o: object) -> bool:
+        return isinstance(__o, ValueAtom) and self.valueType == __o.valueType and self.value == __o.value
+
 class FunctionAtom(Atom):
     """
     A function node in the abstract syntax tree.
