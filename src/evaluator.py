@@ -40,6 +40,41 @@ def compatible_type(value: Atom, types: list[str]) -> bool:
 def is_identifier(expression: Node) -> bool:
     return isinstance(expression, AtomicNode) and expression.valueType == "identifier"
 
+def is_identifier_members(expression: Node) -> bool:
+    return isinstance(expression, BinaryNode) and expression.operator == "DOT" and (
+        is_identifier(expression.left) or is_identifier_members(expression.left)
+    ) and is_identifier(expression.right)
+
+def get_member_base(expression: Node) -> Node:
+    """
+    Get the base of a member expression.
+    """
+    if isinstance(expression, BinaryNode) and expression.operator == "DOT":
+        return get_member_base(expression.left)
+    else:
+        return expression
+
+def get_member_path(expression: Node, includeBase: bool) -> list[str]:
+    """
+    Get the path of a member expression.
+    """
+    if isinstance(expression, BinaryNode) and expression.operator == "DOT":
+        return get_member_path(expression.left, includeBase) + [expression.right.value]
+    else:
+        return [expression.value] if includeBase else []
+
+def set_member_value(obj: ValueAtom, path: list[str], rhs: Atom) -> ValueAtom:
+    """
+    Set the value of a member expression.
+    """
+    if len(path) == 0: raise Exception("Member path is empty")
+    elif len(path) == 1:
+        obj.value[path[0]] = rhs
+        return obj
+    else:
+        obj.value[path[0]] = set_member_value(obj.value[path[0]], path[1:], rhs)
+        return obj
+
 # Evaluation functions
 
 def evaluate_expression(expression: Node, env: Environment) -> Atom:
@@ -63,7 +98,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         return ValueAtom("list", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
     elif isinstance(expression, MapNode):
         map_values: dict[str | int, Atom] = {}
-        for key, functionValue in expression.pairs.items():
+        for key, value in expression.pairs.items():
             if not isinstance(key, AtomicNode):
                 raise Exception(f"Key in map is not an atomic value")
             if key.valueType == "number" and key.value.is_integer():
@@ -71,8 +106,8 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                 key.valueType = "integer"
             if key.valueType not in ["identifier", "string", "integer"]:
                 raise Exception(f"Key in map is not an identifier, string or integer number")
-            functionValue = evaluate_expression(functionValue, env)
-            map_values[key.value] = functionValue
+            value = evaluate_expression(value, env)
+            map_values[key.value] = value
         return ValueAtom("map", map_values)
     elif isinstance(expression, BlockNode):
         return evaluate_expressions(expression.expressions, Environment(f"<block>", env))
@@ -112,6 +147,28 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                 rhs = evaluate_expression(expression.right, env)
                 env.set(expression.left.value, rhs)
                 return rhs
+            elif is_identifier_members(expression.left):
+                # Assign to object member
+                rhs = evaluate_expression(expression.right, env)
+                # Update the object with the new value
+                base = get_member_base(expression.left)
+                if is_identifier(base):
+                    # Base is a single identifier
+                    # Lookup the object in the environment
+                    obj = env.get(base.value)
+                    if obj is None:
+                        raise Exception(f"Object '{base.value}' is not defined")
+                    # Get the full member path
+                    path = get_member_path(expression.left, False)
+                    # Update the object
+                    obj = set_member_value(obj, path, rhs)
+                    # Update the environment
+                    env.set(base.value, obj)
+                    # Return the new value
+                    return rhs
+                else:
+                    # Base is not a single identifier, error
+                    raise Exception(f"Cannot set member of non-identifer values")
             elif isinstance(expression.left, BinaryNode) and expression.left.operator == "CALL":
                 # Function declaration
                 functionName = expression.left.left
@@ -128,10 +185,10 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                     argNames.append(a.value)
                 # Assign the right hand side as body of the function
                 body = expression.right
-                functionValue = FunctionAtom(argNames, body, env, functionName.value)
+                value = FunctionAtom(argNames, body, env, functionName.value)
                 # Update the environment
-                env.set(functionName.value, functionValue)
-                return functionValue
+                env.set(functionName.value, value)
+                return value
             else:
                 raise Exception(f"Invalid assignment, left hand side is not an identifier, function or valid pattern")
 
