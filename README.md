@@ -839,6 +839,27 @@ Other ways to contribute to the article series include:
 > ### Citation
 > Correctly cite and refer to the `mini` programming language and the article series by using the `🗨️ Cite this repository` button in the right-hand sidebar of this repository.
 
+## Development
+
+Fork the [official repository](https://github.com/mini-lang/mini-lang) and start contributing!
+Play around with the code and see how it works. Add your own features and fix bugs.
+When you are done, submit a pull request [here](https://github.com/mini-lang/mini-lang/pulls).
+
+Interact with the [community](https://discord.gg/YzjQZjh) and ask questions, share your ideas and discuss the language there!
+
+### Tests
+
+Run all [tests](https://github.com/mini-lang/mini-lang/tree/main/tests) to make sure the language works as expected by running `py test.py` in the root of the repository.
+
+Always create new tests when you add a new feature. This will help us to make sure that the language will continue to work as expected.
+Simply extend an existing or create a new test file and add the tests for the new feature in `tests/`.
+If you create a new file, make sure to follow the naming convention and structure, and add an exported `run_all` function from your test.
+This should be imported in the `test.py` file and called similar to the code in the example below.
+
+```python
+passed &= run_all_list_tests()
+```
+
 ## License
 This project is licensed under the [MIT license](https://github.com/WilliamRagstad/mini-lang/blob/main/LICENSE).
 The source code is available on [GitHub](https://github.com/WilliamRagstad/mini-lang).
