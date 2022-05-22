@@ -61,13 +61,7 @@ class ValueAtom(Atom):
             return '[' + ", ".join(self.listValueToStr()) + ']'
         elif self.valueType == "map":
             return '#{' + ", ".join(map(lambda t: f"{t[0]}: {t[1]}", self.value.items())) + '}'
-        return value
-
-    def __repr__(self) -> str:
-        value = str(self)
-        if self.valueType == "string":
-            return self.value
-        return value
+        return str(self.value)
 
     def __eq__(self, __o: object) -> bool:
         return isinstance(__o, ValueAtom) and self.valueType == __o.valueType and self.value == __o.value

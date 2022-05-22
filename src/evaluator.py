@@ -224,7 +224,7 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
     dprint(f"Evaluating binary expression '{lhs} {op} {rhs}'")
     if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "boolean", "list", "tuple", "map"]):
         if lhs.valueType == "string" or rhs.valueType == "string":
-            return ValueAtom("string", repr(lhs) + repr(rhs))
+            return ValueAtom("string", lhs.value + rhs.value)
         elif lhs.valueType == "list" and rhs.valueType == "list":
             return ValueAtom("list", lhs.value + rhs.value)
         elif lhs.valueType == "number" and rhs.valueType == "number":
@@ -317,7 +317,7 @@ def evaluate_builtin_function_call(function: BuiltinFunctionAtom, args: list[Ato
     for a in args:
         if not isinstance(a, ValueAtom):
             raise Exception(f"Argument '{a}' does not evaluate to an atomic value")
-        values.append(repr(a))
+        values.append(a.value)
     return function.func(*values)
 
 def evaluate_expressions(expressions: list[Node], env: Environment) -> Atom:
