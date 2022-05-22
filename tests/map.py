@@ -12,6 +12,8 @@ def test_member_access():
     assert_eval("m = #{a: 5} m.a", ValueAtom("number", 5))
     assert_eval("#{a: #{ b: 5}}.a.b", ValueAtom("number", 5))
     assert_eval("#{a: #{ b: #{c: 6}}}.a.b.c", ValueAtom("number", 6))
+    assert_eval("#{a: 5}['a']", ValueAtom("number", 5))
+    assert_eval("#{a: #{ b: 5}}['a']['b']", ValueAtom("number", 5))
 
 def test_member_assignment():
     print("- Testing member assignment...")
