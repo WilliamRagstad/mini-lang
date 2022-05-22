@@ -51,8 +51,6 @@ class ValueAtom(Atom):
         value = str(self.value)
         if self.valueType == "string":
             return f"'{value}'"
-        elif self.valueType == "number" and self.value.is_integer():
-            return str(int(self.value))
         elif self.valueType == "boolean":
             return value.lower()
         elif self.valueType == "unit":

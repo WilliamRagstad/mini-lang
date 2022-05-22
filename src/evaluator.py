@@ -45,7 +45,10 @@ def is_identifier_members(expression: Node) -> bool:
         is_identifier(expression.left) or is_identifier_members(expression.left)
     ) and is_identifier(expression.right)
 
-def get_member_base(expression: Node) -> Node:
+def is_index_expression(expression: Node) -> bool:
+    return isinstance(expression, BinaryNode) and expression.operator == "INDEX"
+
+def get_left_most_bin_term(expression: Node, op: str) -> Node:
     """
     Get the base of a member expression.
     """
@@ -147,14 +150,15 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                 rhs = evaluate_expression(expression.right, env)
                 env.set(expression.left.value, rhs)
                 return rhs
-            elif is_identifier_members(expression.left):
+            elif is_identifier_members(expression.left) or is_index_expression(expression.left):
+                op = "DOT" if is_identifier_members(expression.left) else "INDEX"
                 rhs = evaluate_expression(expression.right, env)
-                base = get_member_base(expression.left)
+                base = get_left_most_bin_term(expression.left, op)
                 if is_identifier(base):
                     obj = env.get(base.value)
                     if obj is None: raise Exception(f"Object '{base.value}' is not defined")
-                    path = get_member_path(expression.left, False)
-                    obj = set_member_value(obj, path, rhs)
+                    path = flatten_bin_terms(expression.left, op, False)
+                    obj = set_nested_value(obj, path, rhs)
                     env.set(base.value, obj)
                     return rhs
                 else:

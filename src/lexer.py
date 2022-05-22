@@ -189,7 +189,9 @@ class Lexer:
                 nc = self.__peek_char()
             else:
                 break
-        return self.__token("NUMBER", float(s))
+        value = float(s)
+        value = int(value) if value.is_integer() else value
+        return self.__token("NUMBER", value)
 
     def __is_end_of_expression(self, c: str) -> bool:
         return (c is not None) and (c.isalnum() or c in ['_', ']', '}', ')'])
