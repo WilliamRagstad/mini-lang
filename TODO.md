@@ -4,6 +4,7 @@ Below are some things that need to be done, as well as some ideas for future dev
 - [ ] Setting values on hash map objects.\
 	Example: `map[key] = value`
 - [ ] Propper error handling. Pretty printed errors with detailed information about the error location, type, and message. Take inspiration from other languages.
+- [ ] Function variations, variables that are assigned lambdas should have support for overloading with different signatures. Correct function should be found using pattern matching on the argument list or simply matching by the number of arguments passed to the function.
 - [ ] Implementing the `for` loop.
 - [ ] Implementing the `while` loop.
 - [ ] Implementing pattern matching with support for complex patterns.\
@@ -18,13 +19,16 @@ Below are some things that need to be done, as well as some ideas for future dev
 - [ ] Implement enum types.
 - [ ] Implement atom types. (Atom types are types that can only be created once and cannot be changed.)\
 	Example: `atm = :hello_world` then `atm == :hello_world` is always true.
+- [ ] Unicode support for identifiers and atoms. (Strings already support unicode encodings)
+- [ ] More escape sequences for strings.
 - [ ] Expand standard library.
 	- [ ] Filesystem, open files and read/write contents.
 	- [ ] Networking.
 	- [ ] Time and date.
 	- [ ] Random numbers.
 	- [ ] Regular expressions.
-	- [ ] String formatting. `format("a={} b={}", a, b)` or similar.
+	- [ ] String formatting. `format("a={} b={}", a, b)` or similar.\
+		Is this a good idea to feature in the base language?
 	- [ ] Math, trigonometry, and other functions.
 	- [ ] Encoding/decoding.
 	- [ ] Encryption/decryption.
