@@ -111,7 +111,12 @@ class Parser:
         prev_comment = self.lexer.prev_comment()
         t = self.lexer.next_token()
         if t.name in ["IDENTIFIER", "STRING", "NUMBER", "BOOLEAN"]:
-            return AtomicNode(t.name.lower(), t.value)
+            value = AtomicNode(t.name.lower(), t.value)
+            nt = self.lexer.peek_token()
+            if nt.name == "RIGHTARROW":
+                return self.__parse_lambda([value])
+            else:
+                return value
         elif t.name == "KEYWORD":
             if t.value == "if":
                 return self.__parse_if()
@@ -121,13 +126,7 @@ class Parser:
             # Check for trailing right arrow
             nt = self.lexer.peek_token()
             if nt.name == "RIGHTARROW":
-                self.lexer.next_token() # Remove right arrow
-                # Validate that the tuple only has identifiers
-                # And add them to a list of argument names
-                args = self.__ident_list_to_str(lhs.elements)
-                # Parse the body of the lambda
-                body = self.__parse_expression()
-                return LambdaNode(args, body)
+                return self.__parse_lambda(lhs.elements)
             else:
                 return lhs
         elif t.name == "LBRACKET":
@@ -140,6 +139,18 @@ class Parser:
             return UnaryNode(t.name, self.__parse_primary())
         else:
             self.__error(f"Expected primary expression but got '{t.name}'", t)
+
+    def __parse_lambda(self, args: list[Node]) -> LambdaNode:
+        """
+        Parse a lambda expression from the lexer.
+        """
+        self.__expect("RIGHTARROW")
+        # Validate that the tuple only has identifiers
+        # And add them to a list of argument names
+        params = self.__ident_list_to_str(args)
+        # Parse the body of the lambda
+        body = self.__parse_expression()
+        return LambdaNode(params, body)
 
     def __parse_binary_expression(self, lhs: Node, precedence: int) -> Node:
         """
