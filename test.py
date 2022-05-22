@@ -1,8 +1,10 @@
+from tests.util import set_crash_on_error
 from tests.objects import run_all as run_all_object_tests
 from tests.lists import run_all as run_all_list_tests
 
 def main():
     # run all tests
+    set_crash_on_error(False)
     passed = True
     print("\nRunning all tests:")
     print("==================")
