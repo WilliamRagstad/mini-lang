@@ -148,26 +148,16 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                 env.set(expression.left.value, rhs)
                 return rhs
             elif is_identifier_members(expression.left):
-                # Assign to object member
                 rhs = evaluate_expression(expression.right, env)
-                # Update the object with the new value
                 base = get_member_base(expression.left)
                 if is_identifier(base):
-                    # Base is a single identifier
-                    # Lookup the object in the environment
                     obj = env.get(base.value)
-                    if obj is None:
-                        raise Exception(f"Object '{base.value}' is not defined")
-                    # Get the full member path
+                    if obj is None: raise Exception(f"Object '{base.value}' is not defined")
                     path = get_member_path(expression.left, False)
-                    # Update the object
                     obj = set_member_value(obj, path, rhs)
-                    # Update the environment
                     env.set(base.value, obj)
-                    # Return the new value
                     return rhs
                 else:
-                    # Base is not a single identifier, error
                     raise Exception(f"Cannot set member of non-identifer values")
             elif isinstance(expression.left, BinaryNode) and expression.left.operator == "CALL":
                 # Function declaration
