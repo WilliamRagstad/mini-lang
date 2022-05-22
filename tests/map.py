@@ -1,7 +1,7 @@
 from .util import assert_eval, get_all_asserts_passed, new_test_suite, ValueAtom
 
-def test_create_object():
-    print("- Testing create object...")
+def test_create_map():
+    print("- Testing create map...")
     assert_eval("#{}", ValueAtom("map", {}))
     assert_eval("#{a: 5}", ValueAtom("map", {"a": ValueAtom("number", 5)}))
     assert_eval("#{a: 5, b: 6}", ValueAtom("map", {"a": ValueAtom("number", 5), "b": ValueAtom("number", 6)}))
@@ -18,8 +18,8 @@ def test_member_assignment():
     assert_eval("m = #{a: 5} m.a = 6 m.a", ValueAtom("number", 6))
 
 def run_all() -> bool:
-    new_test_suite("object")
-    test_create_object()
+    new_test_suite("map")
+    test_create_map()
     test_member_access()
     test_member_assignment()
     return get_all_asserts_passed()

@@ -1,5 +1,5 @@
 from tests.util import set_crash_on_error
-from tests.objects import run_all as run_all_object_tests
+from tests.map import run_all as run_all_map_tests
 from tests.lists import run_all as run_all_list_tests
 
 def main():
@@ -8,7 +8,7 @@ def main():
     passed = True
     print("\nRunning all tests:")
     print("==================")
-    passed &= run_all_object_tests()
+    passed &= run_all_map_tests()
     passed &= run_all_list_tests()
     print("\n==================")
     if passed:
