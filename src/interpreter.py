@@ -54,6 +54,7 @@ def repl(debug = False):
             continue
         try:
             result, env = execute(StringIO(line), env, debug)
+            if isinstance(result, ValueAtom) and result.valueType == "unit": continue
             print(str(result))
         except Exception as e:
             print(e)
