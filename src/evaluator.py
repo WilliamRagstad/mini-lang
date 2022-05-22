@@ -52,21 +52,21 @@ def get_left_most_bin_term(expression: Node, op: str) -> Node:
     """
     Get the base of a member expression.
     """
-    if isinstance(expression, BinaryNode) and expression.operator == "DOT":
-        return get_member_base(expression.left)
+    if isinstance(expression, BinaryNode) and expression.operator == op:
+        return get_left_most_bin_term(expression.left, op)
     else:
         return expression
 
-def get_member_path(expression: Node, includeBase: bool) -> list[str]:
+def flatten_bin_terms(expression: Node, op: str, includeBase: bool) -> list[str]:
     """
     Get the path of a member expression.
     """
-    if isinstance(expression, BinaryNode) and expression.operator == "DOT":
-        return get_member_path(expression.left, includeBase) + [expression.right.value]
+    if isinstance(expression, BinaryNode) and expression.operator == op:
+        return flatten_bin_terms(expression.left, op, includeBase) + [expression.right.value]
     else:
         return [expression.value] if includeBase else []
 
-def set_member_value(obj: ValueAtom, path: list[str], rhs: Atom) -> ValueAtom:
+def set_nested_value(obj: ValueAtom, path: list[str], rhs: Atom) -> ValueAtom:
     """
     Set the value of a member expression.
     """
@@ -75,7 +75,7 @@ def set_member_value(obj: ValueAtom, path: list[str], rhs: Atom) -> ValueAtom:
         obj.value[path[0]] = rhs
         return obj
     else:
-        obj.value[path[0]] = set_member_value(obj.value[path[0]], path[1:], rhs)
+        obj.value[path[0]] = set_nested_value(obj.value[path[0]], path[1:], rhs)
         return obj
 
 # Evaluation functions
@@ -276,17 +276,13 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
     elif op == "INDEX" and compatible_type(lhs, ["list", "tuple", "map"]):
         if not isinstance(rhs, ValueAtom):
             raise Exception(f"Indexing expression in not a valid value type: {rhs}")
-        if rhs.valueType == "number": # Make sure it's an integer
-            if not rhs.value.is_integer():
-                raise Exception(f"Indexing expression does not evaluate to an integer or string")
-            index = int(rhs.value)
-        elif rhs.valueType == "string":
+        if rhs.valueType in ["number", "string"]:
             index = rhs.value
+            element = lhs.value[index]
+            dprint(f"Indexing {lhs.type}: {lhs.value} with index {index} -> {element}")
+            return element
         else:
             raise Exception(f"Indexing expression does not evaluate to an integer or string")
-        element = lhs.value[index]
-        dprint(f"Indexing {lhs.type}: {lhs.value} with index {index} -> {element}")
-        return element
     elif op == "CALL":
         # The tuple may have been evaluated to a single value
         args = [rhs]
