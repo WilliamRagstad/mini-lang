@@ -13,8 +13,7 @@ Options:
 
 Examples:
     mini -r         Enter the REPL
-    mini file.mini  Evaluate the input file
-"""
+    mini file.mini  Evaluate the input file\n"""
 
 # === Helper functions ===
 def print_error(msg: str):
@@ -32,7 +31,7 @@ def main(args: list):
         sys.exit(0)
     elif '-r' in args or '--repl' in args:
         repl(debug)
-    
+
     # Evaluate
     elif len(args) > 1:
         print_error("Too many arguments")
