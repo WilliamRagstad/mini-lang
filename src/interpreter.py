@@ -72,7 +72,8 @@ def globalEnvironment():
     addBuiltin("tan", lambda x: ValueAtom("number", math.tan(x)), env)
     return env
 
-def execute(input: TextIOBase, env: Environment, debug = False):
+def execute(input: TextIOBase, env: Environment, options):
+    debug = options["debug"]
     lexer = Lexer(input, debug)
     parser = Parser(lexer, debug)
     if debug:
@@ -89,12 +90,12 @@ def execute(input: TextIOBase, env: Environment, debug = False):
     return result, env
 
 # Interpreter mode
-def interpret(filepath: str, debug = False):
+def interpret(filepath: str, options):
     with open(filepath, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True) as f:
-        execute(f, globalEnvironment(), debug)
+        execute(f, globalEnvironment(), options)
 
 # Repl mode
-def repl(debug = False):
+def repl(options):
     print("Welcome to the mini interpreter!")
     env = globalEnvironment()
     while True:
@@ -107,10 +108,10 @@ def repl(debug = False):
         if line == "":
             continue
         try:
-            result, env = execute(StringIO(line), env, debug)
+            result, env = execute(StringIO(line), env, options)
             if isinstance(result, ValueAtom) and result.valueType == "unit": continue
             print(str(result))
         except Exception as e:
             print(e)
-            if debug:
+            if options["debug"]:
                 raise e
