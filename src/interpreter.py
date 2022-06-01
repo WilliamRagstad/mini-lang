@@ -1,5 +1,7 @@
 from io import open, TextIOBase, StringIO
 
+from .options import Options
+
 from .parser import Parser
 from .lexer import Lexer
 from .evaluator import evaluate
@@ -7,19 +9,18 @@ from .environment import Environment, globalEnvironment
 from .atoms import ValueAtom
 from .std import addStdlib
 
-def execute(input: TextIOBase, env: Environment, options):
-    debug = options["debug"]
-    lexer = Lexer(input, debug)
-    parser = Parser(lexer, debug)
-    if debug:
+def execute(input: TextIOBase, env: Environment, options: Options):
+    lexer = Lexer(input, options.debug)
+    parser = Parser(lexer, options.debug)
+    if options.debug:
         print("== Tokens ==")
     ast = parser.parse()
-    if debug:
+    if options.debug:
         print("== AST ==")
         print('    ' + '\n    '.join(str(e) for e in ast.expressions))
         print("== Evaluation ==")
-    result = evaluate(ast, env, debug)
-    if debug:
+    result = evaluate(ast, env, options.debug)
+    if options.debug:
         print("== END ==")
         print("Result:", result)
     return result, env

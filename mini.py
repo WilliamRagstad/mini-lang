@@ -1,4 +1,5 @@
 import sys
+from src.options import Options
 from src.interpreter import interpret, repl
 from src.compiler import compileFile
 
@@ -26,11 +27,9 @@ def print_error(msg: str):
 
 # === Main ===
 def main(args: list):
-    options = {
-        "debug": False,
-    }
+    options = Options()
     if '--debug' in args:
-        options['debug'] = True
+        options.debug = True
         args.remove('--debug')
     if len(args) == 0 or '-h' in args or '--help' in args:
         print(USAGE)
@@ -40,13 +39,15 @@ def main(args: list):
     elif '-c' in args or '--compile' in args:
         if len(args) != 2:
             print_error("-c or --compile requires a filepath argument.")
-        compileFile(args[1], options)
+        options.setFilepath(args[-1])
+        compileFile(args[-1], options)
 
 
     # Evaluate
     elif len(args) > 1:
         print_error("Too many arguments")
     elif len(args) == 1:
+        options.setFilepath(args[-1])
         interpret(args[-1], options)
     else:
         print_error("Unknown option")
