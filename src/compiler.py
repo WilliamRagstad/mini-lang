@@ -10,8 +10,17 @@ from .lexer import Lexer
 
 
 def compileFile(filepath: str, options: Options):
+    printingAsmOrIR = options.printAssembly or options.printIR
+    if not printingAsmOrIR: print("Compiling...")
     with open(filepath, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True) as f:
         program = compile(f, options)
+
+    # TODO: Log statistics, performance analysis and benchmarks of compilation
+
+    if options.printIR:
+        if options.debug: print("\n== Generated LLVM IR: Module ==")
+        print(module)
+        if options.debug: print("===============================")
 
     # All these initializations are required for code generation!
     binding.initialize()
@@ -21,21 +30,32 @@ def compileFile(filepath: str, options: Options):
     # Create a target machine representing the host
     target = binding.Target.from_default_triple()
     target_machine = target.create_target_machine()
-    obj = target_machine.emit_object(program)
-    print(obj)
+    mod = binding.parse_assembly(str(program))
+    mod.verify()
+    asm = target_machine.emit_assembly(mod)
+    if options.printAssembly:
+        if options.debug: print("\n== Generated LLVM Assembly ==")
+        print(asm)
+        if options.debug: print("===============================")
+    # if options.debug: print("Saved LLVM IR to file:", options.objectFilepath)
+    with open(options.objectFilepath, "wb") as f:
+        f.write(target_machine.emit_object(mod))
+    # obj = target_machine.emit_object(binding.ModuleRef(program, program.context))
+    # print(obj)
     # Save the generated code to a file
-    with open(filepath + ".o", mode='w', buffering=-1, encoding=None, errors=None, newline=None, closefd=True) as f:
-        f.write(obj)
+    # with open(filepath + ".o", mode='w', buffering=-1, encoding=None, errors=None, newline=None, closefd=True) as f:
+    #     f.write(obj)
     target_machine.close()
-    print("Building executable...")
+    if not printingAsmOrIR: print("Building executable...")
     # Build the executable
-    binding.link_in_file(filepath + ".o")
+    # binding.link_in_file(filepath + ".o")
     # Run GCC
-    filename_path = os.path.splitext(filepath)[0]
-    if os.system("gcc -o " + filename_path + " " + filepath + ".o") != 0:
+    if os.system("gcc -o " + options.executableFilepath + " " + options.objectFilepath) != 0:
         print("Compilation failed!")
     else:
-        print("Done!")
+        if not printingAsmOrIR: print("Done!")
+        # Remove the object file
+        os.remove(options.objectFilepath)
 
 # Types
 
@@ -56,33 +76,34 @@ builder = None
 
 def compile(input: TextIOBase, options: Options) -> ir.Module:
     global module, builder
-    print("Compiling...")
     lexer = Lexer(input, options.debug)
     parser = Parser(lexer, options.debug)
     ast = parser.parse()
     # LLVM IR
-    module = ir.Module("program")
-    builder = ir.IRBuilder()
+    module = ir.Module("program-" + options.filenameNoExt)
     # https://clang.llvm.org/docs/CrossCompilation.html#target-triple
     module.triple = "x86_64-pc-linux-gnu"
+    builder = ir.IRBuilder()
 
     # generate(ast)
+    main = ir.Function(module, ir.FunctionType(int32Ty, []), "main")
+    builder = ir.IRBuilder(main.append_basic_block("entry"))
 
 
 
-    # TODO: Log statistics, performance analysis and benchmarks of compilation
-    print("Generated module:")
-    print(module)
+    builder.ret(int32Ty(0))
+
     return module
 
 
 def generate(ast: Node):
-    global builder
+    global module, builder
     if isinstance(ast, ProgramNode):
-        # builder.append_basic_block("main")
+        main = ir.Function(module, ir.FunctionType(int32Ty, []), "main")
+        builder = ir.IRBuilder(main.append_basic_block("entry"))
         for n in ast.expressions:
             generate(n)
-        # return builder.ret_void()
+        return builder.ret_void()
     elif isinstance(ast, AtomicNode):
         return generateAtomic(ast)
     elif isinstance(ast, IfNode):
