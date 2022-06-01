@@ -38,9 +38,13 @@ def main(args: list):
         options.optimize = True
         args.remove('--optimize')
     if '--print-ir' in args:
+        if options.printAssembly:
+            print_error("--print-ir and --print-asm are mutually exclusive.")
         options.printIR = True
         args.remove('--print-ir')
     if '--print-asm' in args:
+        if options.printIR:
+            print_error("--print-ir and --print-asm are mutually exclusive.")
         options.printAssembly = True
         args.remove('--print-asm')
 
