@@ -91,7 +91,7 @@ def compile(input: TextIOBase, options: Options) -> ir.Module:
 
 
 
-    builder.ret(int32Ty(0))
+    builder.ret(int32Ty(13))
 
     return module
 
