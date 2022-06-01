@@ -28,9 +28,9 @@ class Lexer:
         self.__column = 1
         self.__debug = debug
         self.__prev_char: str = None # Previously read character
-        self.__peeked_char: str | None = None # The last character that was peeked
-        self.__peeked_token: Token | None = None # The last token that was peeked
-        self.__prev_comment: Token | None = None # The last comment that was read before the previous token
+        self.__peeked_char: str = None # The last character that was peeked
+        self.__peeked_token: Token = None # The last token that was peeked
+        self.__prev_comment: Token = None # The last comment that was read before the previous token
 
     # Helper functions
     def __dprint(self, *args):

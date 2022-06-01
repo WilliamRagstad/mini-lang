@@ -1,5 +1,6 @@
 import sys
 from src.interpreter import interpret, repl
+from src.compiler import compile
 
 # === Global variables ===
 
@@ -27,7 +28,6 @@ def print_error(msg: str):
 def main(args: list):
     options = {
         "debug": False,
-        "compile": False,
     }
     if '--debug' in args:
         options['debug'] = True
@@ -39,9 +39,8 @@ def main(args: list):
         repl(options)
     elif '-c' in args or '--compile' in args:
         if len(args) != 2:
-            print_error("-c or --compile requires exactly one argument.")
-        options['compile'] = True
-        interpret(args[1], options)
+            print_error("-c or --compile requires a filepath argument.")
+        compile(args[1], options)
 
 
     # Evaluate

@@ -15,7 +15,7 @@ class ProgramNode(Node):
     """
     A program node in the abstract syntax tree.
     """
-    def __init__(self, expressions: list[Node]):
+    def __init__(self, expressions: list):
         """
         Initialize a program node with a list of expressions.
         """
@@ -42,7 +42,7 @@ class BlockNode(Node):
     """
     A block node in the abstract syntax tree.
     """
-    def __init__(self, expressions: list[Node]):
+    def __init__(self, expressions: list):
         """
         Initialize a block node with a list of expressions.
         """
@@ -56,7 +56,7 @@ class TupleNode(Node):
     """
     A tuple node in the abstract syntax tree.
     """
-    def __init__(self, elements: list[Node]):
+    def __init__(self, elements: list):
         """
         Initialize a tuple node with a list of elements.
         """
@@ -70,7 +70,7 @@ class ListNode(Node):
     """
     A list node in the abstract syntax tree.
     """
-    def __init__(self, elements: list[Node]):
+    def __init__(self, elements: list):
         """
         Initialize a list node with a list of elements.
         """
@@ -84,7 +84,7 @@ class MapNode(Node):
     """
     A hash map node in the abstract syntax tree.
     """
-    def __init__(self, pairs: dict[Node, Node]):
+    def __init__(self, pairs: dict):
         """
         Initialize a map node with a list of elements.
         """
@@ -131,7 +131,7 @@ class LambdaNode(Node):
     """
     A lambda function node in the abstract syntax tree.
     """
-    def __init__(self, params: list[str], body: Node):
+    def __init__(self, params: list, body: Node):
         """
         Initialize a lambda function node with a list of parameters and a body.
         """
@@ -146,8 +146,11 @@ class IfNode(Node):
     """
     An if node in the abstract syntax tree.
     Contains a condition and body togehter with an optional if else statements and else body.
+
+    Parameters:
+        elseIfs: A list of else ifs. Each else if is a tuple of condition and body.
     """
-    def __init__(self, condition: Node, ifBody: Node, elseIfs: list[tuple[Node, Node]] = [], elseBody: Node = None):
+    def __init__(self, condition: Node, ifBody: Node, elseIfs: list = [], elseBody: Node = None):
         """
         Initialize an if node with a condition, if body and an optional else body and else ifs.
         """

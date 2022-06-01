@@ -13,7 +13,7 @@ def dprint(*args):
     if debug:
         print(*args)
 
-def compatible_types(lhs: Atom, rhs: Atom, types: list[str]) -> bool:
+def compatible_types(lhs: Atom, rhs: Atom, types: list) -> bool:
     """
     Check if the two atoms are compatible with the given types.
     """
@@ -26,7 +26,7 @@ def compatible_types(lhs: Atom, rhs: Atom, types: list[str]) -> bool:
     else:
         raise Exception(f"Incompatible types: {lhs.valueType} and {rhs.valueType}")
 
-def compatible_type(value: Atom, types: list[str]) -> bool:
+def compatible_type(value: Atom, types: list) -> bool:
     """
     Check if the given value is a `ValueAtom` and compatible with the given types.
     """
@@ -57,7 +57,7 @@ def get_left_most_bin_term(expression: Node, op: str) -> Node:
     else:
         return expression
 
-def flatten_bin_terms(expression: Node, op: str, includeBase: bool) -> list[str]:
+def flatten_bin_terms(expression: Node, op: str, includeBase: bool) -> list:
     """
     Get the path of a member expression.
     """
@@ -66,7 +66,7 @@ def flatten_bin_terms(expression: Node, op: str, includeBase: bool) -> list[str]
     else:
         return [expression.value] if includeBase else []
 
-def set_nested_value(obj: ValueAtom, path: list[str], rhs: Atom) -> ValueAtom:
+def set_nested_value(obj: ValueAtom, path: list, rhs: Atom) -> ValueAtom:
     """
     Set the value of a member expression.
     """
@@ -100,7 +100,8 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
     elif isinstance(expression, ListNode):
         return ValueAtom("list", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
     elif isinstance(expression, MapNode):
-        map_values: dict[str | int, Atom] = {}
+        # map_values: dict[str | int, Atom]
+        map_values: dict = {}
         for key, value in expression.pairs.items():
             if not isinstance(key, AtomicNode):
                 raise Exception(f"Key in map is not an atomic value")
@@ -172,7 +173,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                 # Check that the arguments is a a tuple of identifiers
                 if not isinstance(args, TupleNode):
                     raise Exception(f"Function arguments are not a tuple")
-                argNames: list[str] = []
+                argNames: list = []
                 for a in args.elements:
                     if not isinstance(a, AtomicNode) or a.valueType != "identifier":
                         raise Exception(f"Function argument '{a}' is not an identifier")
@@ -301,7 +302,8 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
 
     return None
 
-def evaluate_function_call(function: FunctionAtom, args: list[Atom], env: Environment) -> Atom:
+def evaluate_function_call(function: FunctionAtom, args: list, env: Environment) -> Atom:
+    # args is a list of atoms
     # Build a new environment for the function call
     # where the arguments are bound to the parameters
     funcEnv = Environment(f"<function {function.name}>", function.environment)
@@ -311,7 +313,7 @@ def evaluate_function_call(function: FunctionAtom, args: list[Atom], env: Enviro
         funcEnv.set(name, val)
     return evaluate_expression(function.body, funcEnv)
 
-def evaluate_builtin_function_call(function: BuiltinFunctionAtom, args: list[Atom], env: Environment) -> Atom:
+def evaluate_builtin_function_call(function: BuiltinFunctionAtom, args: list, env: Environment) -> Atom:
     # Check that all arguments are of value types, and then map them to their values
     values = []
     for a in args:
@@ -320,7 +322,7 @@ def evaluate_builtin_function_call(function: BuiltinFunctionAtom, args: list[Ato
         values.append(a.value)
     return function.func(*values)
 
-def evaluate_expressions(expressions: list[Node], env: Environment) -> Atom:
+def evaluate_expressions(expressions: list, env: Environment) -> Atom:
     """
     Evaluate a list of expressions and return the last result.
     """

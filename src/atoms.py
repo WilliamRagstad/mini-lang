@@ -69,7 +69,7 @@ class FunctionAtom(Atom):
     """
     A function node in the abstract syntax tree.
     """
-    def __init__(self, argumentNames: list[str], body: Node, environment, name: str = None):
+    def __init__(self, argumentNames: list, body: Node, environment, name: str = None):
         """
         Initialize a function node with a function name, argument names, body and the environment in which it was defined.
         """

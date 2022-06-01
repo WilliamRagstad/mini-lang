@@ -62,7 +62,7 @@ class Parser:
         return t
 
     # Tokenizer functions
-    def __parse_list_of_expressions(self, delimiter: str, end_delimiter: str) -> list[Node]:
+    def __parse_list_of_expressions(self, delimiter: str, end_delimiter: str) -> list:
         """
         Parse a list of expressions from the lexer and return them as a list.
         The expressions are separated by the given delimiter and the list ends with the given end delimiter.
@@ -80,7 +80,7 @@ class Parser:
         self.lexer.next_token() # Remove the end delimiter
         return expressions
 
-    def __parse_expressions_until(self, end_delimiter: str) -> list[Node]:
+    def __parse_expressions_until(self, end_delimiter: str) -> list:
         """
         Parse a list of expressions from the lexer and return them as a list.
         The expressions are ended with the given end delimiter.
@@ -93,7 +93,7 @@ class Parser:
         self.lexer.next_token()
         return expressions
 
-    def __ident_list_to_str(self, nodes: list[Node]) -> list[str]:
+    def __ident_list_to_str(self, nodes: list) -> list:
         """
         Convert and verify a list of identifiers and return a list of strings.
         """
@@ -140,7 +140,7 @@ class Parser:
         else:
             self.__error(f"Expected primary expression but got '{t.name}'", t)
 
-    def __parse_lambda(self, args: list[Node]) -> LambdaNode:
+    def __parse_lambda(self, args: list) -> LambdaNode:
         """
         Parse a lambda expression from the lexer.
         """
