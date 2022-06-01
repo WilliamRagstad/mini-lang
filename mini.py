@@ -1,6 +1,6 @@
 import sys
 from src.interpreter import interpret, repl
-from src.compiler import compile
+from src.compiler import compileFile
 
 # === Global variables ===
 
@@ -40,7 +40,7 @@ def main(args: list):
     elif '-c' in args or '--compile' in args:
         if len(args) != 2:
             print_error("-c or --compile requires a filepath argument.")
-        compile(args[1], options)
+        compileFile(args[1], options)
 
 
     # Evaluate
