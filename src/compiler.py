@@ -4,7 +4,7 @@ from llvmlite import ir, binding
 
 from .options import Options
 
-from .ast import AtomicNode, IfNode, Node, ProgramNode
+from .ast import AtomicNode, BinaryNode, IfNode, Node, ProgramNode
 from .parser import Parser
 from .lexer import Lexer
 
@@ -19,7 +19,7 @@ def compileFile(filepath: str, options: Options):
 
     if options.printIR:
         if options.debug: print("\n== Generated LLVM IR: Module ==")
-        print(module)
+        print(program)
         if options.debug: print("===============================")
 
     # All these initializations are required for code generation!
@@ -37,6 +37,7 @@ def compileFile(filepath: str, options: Options):
         if options.debug: print("\n== Generated LLVM Assembly ==")
         print(asm)
         if options.debug: print("===============================")
+
     # if options.debug: print("Saved LLVM IR to file:", options.objectFilepath)
     with open(options.objectFilepath, "wb") as f:
         f.write(target_machine.emit_object(mod))
@@ -71,51 +72,46 @@ doubleTy = ir.DoubleType()
 
 # Globals
 
-module = None
-builder = None
 
 def compile(input: TextIOBase, options: Options) -> ir.Module:
-    global module, builder
     lexer = Lexer(input, options.debug)
     parser = Parser(lexer, options.debug)
-    ast = parser.parse()
-    # LLVM IR
-    module = ir.Module("program-" + options.filenameNoExt)
-    # https://clang.llvm.org/docs/CrossCompilation.html#target-triple
-    module.triple = "x86_64-pc-linux-gnu"
-    builder = ir.IRBuilder()
+    if options.debug: print("== Tokens ==")
+    ast: ProgramNode = parser.parse()
+    if options.debug:
+        print("== AST ==")
+        print('    ' + '\n    '.join(str(e) for e in ast.expressions))
 
-    # generate(ast)
+    module = ir.Module("program-" + options.filenameNoExt)
+    # https://llvm.org/docs/LangRef.html#target-triple
+    # https://clang.llvm.org/docs/CrossCompilation.html#target-triple
+    # https://stackoverflow.com/questions/15036909/clang-how-to-list-supported-target-architectures
+    module.triple = "x86_64-pc-linux-gnu"
+
     main = ir.Function(module, ir.FunctionType(int32Ty, []), "main")
     builder = ir.IRBuilder(main.append_basic_block("entry"))
-
-
-
+    for n in ast.expressions:
+        generate(n, module, builder)
     builder.ret(int32Ty(13))
 
     return module
 
 
-def generate(ast: Node):
-    global module, builder
-    if isinstance(ast, ProgramNode):
-        main = ir.Function(module, ir.FunctionType(int32Ty, []), "main")
-        builder = ir.IRBuilder(main.append_basic_block("entry"))
-        for n in ast.expressions:
-            generate(n)
-        return builder.ret_void()
-    elif isinstance(ast, AtomicNode):
+def generate(ast: Node, module: ir.Module, builder: ir.IRBuilder):
+    if isinstance(ast, AtomicNode):
         return generateAtomic(ast)
     elif isinstance(ast, IfNode):
         builder = ir.IRBuilder()
-        pred = generate(ast.condition)
+        pred = generate(ast.condition, module, builder)
         with builder.if_else(pred) as (if_block, else_block):
             with if_block:
-                generate(ast.if_body)
+                generate(ast.if_body, module, builder)
             with else_block:
-                generate(ast.else_body)
+                generate(ast.else_body, module, builder)
+    elif isinstance(ast, BinaryNode):
+        generateBinOp(ast, module, builder, "res")
     else:
-        pass # raise Exception("Unknown AST node: " + str(ast))
+        raise Exception("Unknown AST node: " + str(ast))
 
 def generateAtomic(ast: Node) -> ir.Value:
     if isinstance(ast, AtomicNode):
@@ -131,6 +127,39 @@ def generateAtomic(ast: Node) -> ir.Value:
             raise Exception("Unknown atomic type: " + str(ast))
     else:
         raise Exception("Unknown AST node: " + str(ast))
+
+def generateBinOp(ast: BinaryNode, module: ir.Module, builder: ir.IRBuilder, resultName: str):
+    if ast.operator == "PLUS":
+        builder.add(generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "MINUS":
+        builder.sub(generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "MULTIPLY":
+        builder.mul(generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "DIVIDE":
+        builder.sdiv(generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "EQUAL":
+        builder.icmp_signed("==", generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "NOTEQUAL":
+        builder.icmp_signed("!=", generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "LESS":
+        builder.icmp_signed("<", generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "GREATER":
+        builder.icmp_signed(">", generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "LESSEQUAL":
+        builder.icmp_signed("<=", generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "GREATEREQUAL":
+        builder.icmp_signed(">=", generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "AND" or ast.operator == "BITWISEAND":
+        builder.and_(generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "OR" or ast.operator == "BITWISEOR":
+        builder.or_(generate(ast.lhs, module, builder), generate(ast.rhs, module, builder), resultName)
+    elif ast.operator == "CALL":
+        generateCall(ast.left, ast.right, module, builder, resultName)
+    else:
+        raise Exception("Unknown operator: " + str(ast.operator))
+
+def generateCall(expr: Node, args: Node, module: ir.Module, builder: ir.IRBuilder, resultName: str):
+    pass
 
 def generateCondition(ast: Node) -> boolTy:
     global builder
