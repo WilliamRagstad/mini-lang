@@ -28,3 +28,6 @@ class Environment():
 
     def __str__(self):
         return f"Environment<{self.name}> {self.values}"
+
+def globalEnvironment():
+    return Environment("global", None)
