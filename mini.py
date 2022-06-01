@@ -13,6 +13,9 @@ Options:
     -r, --repl      Start the REPL
     -c, --compile   Compile to a standalone executable
     --debug         Enable debug mode
+    --optimize      Enable optimizations
+    --print-ir      Print the generated LLVM IR
+    --print-asm     Print the generated assembly
 
 Examples:
     mini -r             Enter the REPL
@@ -31,6 +34,16 @@ def main(args: list):
     if '--debug' in args:
         options.debug = True
         args.remove('--debug')
+    if '--optimize' in args:
+        options.optimize = True
+        args.remove('--optimize')
+    if '--print-ir' in args:
+        options.printIR = True
+        args.remove('--print-ir')
+    if '--print-asm' in args:
+        options.printAssembly = True
+        args.remove('--print-asm')
+
     if len(args) == 0 or '-h' in args or '--help' in args:
         print(USAGE)
         sys.exit(0)
