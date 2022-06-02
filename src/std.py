@@ -2,6 +2,7 @@
 import math
 import os
 import subprocess
+from llvmlite import ir, binding
 
 from .atoms import BuiltinFunctionAtom, ValueAtom
 from .environment import Environment
@@ -69,3 +70,6 @@ def addStdlib(env: Environment):
     addBuiltin("cos", lambda x: ValueAtom("number", math.cos(x)), env)
     addBuiltin("tan", lambda x: ValueAtom("number", math.tan(x)), env)
     return env
+
+def compileStdlib(module: ir.Module):
+    ir.Function(module, ir.FunctionType(ir.VoidType(), [ir.IntType(32)]), "print")
