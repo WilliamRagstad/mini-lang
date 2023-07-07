@@ -829,7 +829,7 @@ There are numerous ways of contributing to the `mini` language, one of which is 
 The best way to show support and help is to get involved in the community! There are many ways to get involved, start by joining the [official discord](https://discord.gg/YzjQZjh) and ask questions, share your ideas and discuss the language there! It is a great place to learn about the language and to get help with any issues you might have, or to even help out with the development of the language.
 
 ### 5. Improve the article series 📚
-If you are a writer and want to contribute to the article series, please see the [contributing to the article series](/CONTRIBUTING#Article-series) section.
+If you are a writer and want to contribute to the article series, please see the [contributing to the article series](/CONTRIBUTING.md#Article-series) section.
 
 Other ways to contribute to the article series include:
 * Commenting on the articles
