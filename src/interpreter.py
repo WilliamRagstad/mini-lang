@@ -2,6 +2,7 @@ import math
 import os
 import subprocess
 from io import open, TextIOBase, StringIO
+from typing import Callable
 
 from .error import print_error, print_error_help
 
@@ -11,15 +12,16 @@ from .parser import Parser
 from .lexer import Lexer
 from .evaluator import evaluate
 from .environment import Environment
-from .atoms import BuiltinFunctionAtom, ValueAtom
+from .atoms import Atom, BuiltinFunctionAtom, ValueAtom
 
 # Helper functions
-def addBuiltin(name, func, env):
+def addBuiltin(name, func: Callable[[list[ValueAtom]], Atom], env: Environment):
     env.set(name, BuiltinFunctionAtom(name, func))
 
 def globalEnvironment():
     env = Environment("global", None)
-    def _print(*args):
+    def _print(args: list[ValueAtom]) -> Atom:
+        args = map(lambda a: a.raw_str(), args)
         print(*args)
         return ValueAtom("unit", None)
     addBuiltin("print", _print, env)
