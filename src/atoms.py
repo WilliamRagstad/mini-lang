@@ -56,7 +56,7 @@ class ValueAtom(Atom):
 
         Parameters
         ----------
-            valueType: The type of the value in lower case.
+            type: The type of the value in lower case.
                        E.g. "string", "number", "boolean", "unit", "tuple", "list".
             value: The value of the node.
         """
@@ -92,7 +92,7 @@ class ValueAtom(Atom):
         return f"<{self.uid}:{self.type}:{self.value}>"
 
     def __eq__(self, __o: object) -> bool:
-        return isinstance(__o, ValueAtom) and self.valueType == __o.valueType and self.value == __o.value
+        return isinstance(__o, ValueAtom) and self.type == __o.type and self.value == __o.value
 
 class FunctionAtom(Atom):
     """
