@@ -788,6 +788,7 @@ def init_stdlib(env: Environment):
     init_sys(env)
     init_fs(env)
     init_net(env)
+    init_encoding(env)
     init_conv(env)
     init_math(env)
     init_random(env)
