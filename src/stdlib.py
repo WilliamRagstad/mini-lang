@@ -367,6 +367,42 @@ def init_net(env: Environment):
     addBuiltin("net_tcp_bind", _net_tcp_bind, env)
     addBuiltin("net_tcp_accept", _net_tcp_accept, env)
 
+def init_encoding(env: Environment):
+    """
+    Initialize text encoding functions.
+    """
+    def _enc_utf8(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "enc_utf8")
+        if args[0].type != "list":
+            raise Exception(f"Function 'enc_utf8' expected a list as first argument but got '{args[0].type}'!")
+        if args[0].value.any(lambda a: a.type != "number"):
+            raise Exception(f"Function 'enc_utf8' expected a list of numbers as first argument but got a list of '{args[0].value[0].type}'!")
+        data = bytes(map(lambda a: a.value, args[0].value))
+        return ValueAtom("string", data.decode("utf-8"))
+    def _dec_utf8(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "dec_utf8")
+        if args[0].type != "string":
+            raise Exception(f"Function 'dec_utf8' expected a string as first argument but got '{args[0].type}'!")
+        data = args[0].value.encode("utf-8")
+        return ValueAtom("list", list(map(lambda b: ValueAtom("number", b), data)))
+    def _enc_base64(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "enc_base64")
+        if args[0].type != "list":
+            raise Exception(f"Function 'enc_base64' expected a list as first argument but got '{args[0].type}'!")
+        if args[0].value.any(lambda a: a.type != "number"):
+            raise Exception(f"Function 'enc_base64' expected a list of numbers as first argument but got a list of '{args[0].value[0].type}'!")
+        data = bytes(map(lambda a: a.value, args[0].value))
+        return ValueAtom("string", data.decode("base64"))
+    def _dec_base64(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "dec_base64")
+        if args[0].type != "string":
+            raise Exception(f"Function 'dec_base64' expected a string as first argument but got '{args[0].type}'!")
+        data = args[0].value.encode("base64")
+        return ValueAtom("list", list(map(lambda b: ValueAtom("number", b), data)))
+    addBuiltin("enc_utf8", _enc_utf8, env)
+    addBuiltin("dec_utf8", _dec_utf8, env)
+    addBuiltin("enc_base64", _enc_base64, env)
+    addBuiltin("dec_base64", _dec_base64, env)
 
 def init_conv(env: Environment):
     """

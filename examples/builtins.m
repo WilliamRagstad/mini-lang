@@ -124,6 +124,10 @@ all = [
     net_tcp_close,
     net_tcp_bind,
     net_tcp_accept,
+    enc_utf8,
+    dec_utf8,
+    enc_base64,
+    dec_base64,
 ]
 print(all)
 print()
