@@ -84,7 +84,10 @@ class ValueAtom(Atom):
         elif self.type == "list":
             return '[' + ", ".join(self.listValueToStr()) + ']'
         elif self.type == "map":
-            return '#{' + ", ".join(map(lambda t: f"{t[0]}: {t[1]}", self.value.items())) + '}'
+            if not isinstance(self.value, dict):
+                raise Exception(f"ValueAtom of type 'map' has value of type '{type(self.value)}'!")
+            value: dict[str, ValueAtom] = self.value
+            return '#{' + ", ".join(map(lambda t: f"{t[0]}: {t[1].formatted_str()}", value.items())) + '}'
         return str(self.value)
 
 
