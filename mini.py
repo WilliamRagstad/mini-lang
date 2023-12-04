@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
 import sys
+from src.error import print_error_help
+from src.colors import BOLD, BRIGHT_BLACK, BRIGHT_YELLOW, GREEN, RED, RESET, YELLOW
 from src.interpreter import interpret, repl
 
 # === Global variables ===
 
-USAGE = f"""Welcome to the mini interpreter!
-Usage: mini (options) <file>
+USAGE = f"""{BRIGHT_YELLOW}Welcome to the {GREEN}mini{BRIGHT_YELLOW} interpreter!{RESET}
 
-Options:
+{BOLD}Usage:{RESET} mini (options) <file>
+
+{BOLD}Options:{RESET}
     -h, --help      Print this help message and exit
     -r, --repl      Start the REPL
     --debug     Enable debug mode
 
-Examples:
+{BOLD}Examples:{RESET}
     mini -r         Enter the REPL
     mini main.m     Evaluate the input file
 """
-
-# === Helper functions ===
-def print_error(msg: str):
-    print(f"{msg}, try -h or --help to show usage.")
-    sys.exit(1)
 
 # === Main ===
 def main(args: list):
@@ -33,14 +31,15 @@ def main(args: list):
         sys.exit(0)
     elif '-r' in args or '--repl' in args:
         repl(debug)
+        sys.exit(0)
 
     # Evaluate
     elif len(args) > 1:
-        print_error("Too many arguments")
+        print_error_help("Too many arguments, expected a single file!")
     elif len(args) == 1:
         interpret(args[-1], debug)
     else:
-        print_error("Unknown option")
+        print_error_help("Unknown option")
 
 if __name__ == '__main__':
     main(sys.argv[1:])
