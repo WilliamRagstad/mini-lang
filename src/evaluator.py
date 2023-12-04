@@ -237,9 +237,7 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
             return ValueAtom("tuple", list(new_value))
         elif lhs.valueType == "map" and rhs.valueType == "map":
             # Concate the maps
-            for key, lhs in rhs.value.items():
-                lhs.value[key] = lhs
-            return lhs
+            return ValueAtom("map", {**lhs.value, **rhs.value})
         else:
             raise Exception(f"Cannot add {lhs.valueType} and {rhs.valueType}")
     elif op == "MINUS" and compatible_types(lhs, rhs, ["number"]):
