@@ -232,7 +232,7 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
         elif lhs.valueType == "tuple" and rhs.valueType == "tuple":
             # Ensure that the tuples have the same length
             if len(lhs.value) != len(rhs.value):
-                raise Exception(f"Tuple length mismatch: {len(lhs.value)} and {len(rhs.value)}")
+                raise Exception(f"Tuple size mismatch: {len(lhs.value)} and {len(rhs.value)}")
             new_value = []
             for i in range(len(lhs.value)):
                 dprint(f"Evaluating {lhs.value[i]} {op} {rhs.value[i]}")
