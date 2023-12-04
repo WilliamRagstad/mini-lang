@@ -46,6 +46,30 @@ class Atom():
         """
         return f"<{self.uid}:{self.type}>"
 
+class IntrinsicAtom(Atom):
+    """
+    An intrinsic value node in the abstract syntax tree.
+    This is not intended to be created by the user.
+    """
+    def __init__(self, type: str, value):
+        """
+        Initialize an intrinsic value node with a value.
+
+        Parameters
+        ----------
+            type: The type of the value in lower case.
+                       E.g. "string", "number", "boolean", "unit", "tuple", "list".
+            value: The value of the node.
+        """
+        super().__init__("Intrinsic", type)
+        self.value = value
+
+    def memory_repr(self):
+        return f"<{self.uid}:intrinsic:{self.type}:{self.value}>"
+
+    def __eq__(self, __o: object) -> bool:
+        return isinstance(__o, IntrinsicAtom) and self.type == __o.type and self.value == __o.value
+
 class ValueAtom(Atom):
     """
     An atomic value node in the abstract syntax tree.
