@@ -308,7 +308,7 @@ def evaluate_function_call(function: FunctionAtom, args: list[Atom], env: Enviro
 
 def evaluate_builtin_function_call(function: BuiltinFunctionAtom, args: list[Atom], env: Environment) -> Atom:
     # Check that all arguments are of value types, and then map them to their values
-    values = []
+    values: list[ValueAtom] = []
     for a in args:
         if not isinstance(a, ValueAtom):
             raise Exception(f"Argument '{a}' does not evaluate to an atomic value")
