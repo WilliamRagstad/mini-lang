@@ -22,6 +22,22 @@ def expect_args(args: list[Atom], expected: list[int], name: str):
                         else expected[0])
         raise Exception(f"Function '{name}' expected {expected_str} arguments but got {len(args)}!")
 
+def init_util(env: Environment):
+    """
+    Initialize utility functions.
+    """
+    def _exit(args: list[Atom]) -> Atom:
+        expect_args(args, [0, 1], "exit")
+        code = args[0].value if len(args) == 1 else 0
+        os._exit(code)
+    def _assert(args: list[Atom]) -> Atom:
+        expect_args(args, [1, 2], "assert")
+        if not args[0].value:
+            raise Exception(args[1].raw_str())
+        return ValueAtom("unit", None)
+    addBuiltin("exit", _exit, env)
+    addBuiltin("assert", _assert, env)
+
 def init_io(env: Environment):
     """
     Initialize standard IO functions.
@@ -41,10 +57,6 @@ def init_sys(env: Environment):
     """
     Initialize system OS functions.
     """
-    def _exit(args: list[Atom]) -> Atom:
-        expect_args(args, [0, 1], "exit")
-        code = args[0].value if len(args) == 1 else 0
-        os._exit(code)
     def _system_run(args: list[Atom]) -> Atom:
         expect_args(args, [1, 2], "system_run")
         cmd = args[0].raw_str()
@@ -134,7 +146,6 @@ def init_sys(env: Environment):
         time.sleep(args[0].value / 1000)
         return ValueAtom("unit", None)
     
-    addBuiltin("exit", _exit, env)
     addBuiltin("system_run", _system_run, env)
     addBuiltin("system_output", _system_output, env)
     addBuiltin("system_get_envs", _system_get_envs, env)
@@ -239,10 +250,78 @@ def init_fs(env: Environment):
     addBuiltin("file_append", _file_append, env)
     addBuiltin("file_size", _file_size, env)
 
+def init_conv(env: Environment):
+    """
+    Initialize conversion functions.
+    """
+    def _str(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "str")
+        return ValueAtom("string", args[0].raw_str())
+    def _int(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "int")
+        try:
+            return ValueAtom("number", int(args[0].raw_str()))
+        except ValueError:
+            return ValueAtom("unit", None)
+    def _float(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "float")
+        try:
+            return ValueAtom("number", float(args[0].raw_str()))
+        except ValueError:
+            return ValueAtom("unit", None)
+    def _bool(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "bool")
+        return ValueAtom("bool", args[0].raw_str().lower() == "true")
+    def _list(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "list")
+        if args[0].type == "list":
+            return args[0]
+        elif args[0].type == "tuple":
+            return ValueAtom("list", args[0].value)
+        elif args[0].type == "map":
+            return ValueAtom("list", list(args[0].pairs.values()))
+        elif args[0].type == "string":
+            return ValueAtom("list", list(args[0].value))
+        return ValueAtom("unit", None)
+    def _tuple(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "tuple")
+        if args[0].type == "list":
+            return ValueAtom("tuple", args[0].value)
+        elif args[0].type == "tuple":
+            return args[0]
+        return ValueAtom("unit", None)
+    def _map(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "map")
+        if args[0].type == "map":
+            return args[0]
+        elif args[0].type == "list":
+            # If it is a list of tuples, convert it to a map
+            if all(e.type == "tuple" for e in args[0].value):
+                return ValueAtom("map", dict(map(lambda t: (t.value[0], t.value[1]), args[0].value)))
+            # If it is a list of values, convert it to a map with indices as keys
+            return ValueAtom("map", dict(map(lambda t: (ValueAtom("number", t[0]), t[1]), enumerate(args[0].value))))
+        return ValueAtom("unit", None)
+    addBuiltin("str", _str, env)
+    addBuiltin("int", _int, env)
+    addBuiltin("float", _float, env)
+    addBuiltin("bool", _bool, env)
+    addBuiltin("list", _list, env)
+    addBuiltin("tuple", _tuple, env)
+    addBuiltin("map", _map, env)
+
 def init_math(env: Environment):
     """
     Initialize math functions.
     """
+    def _range(args: list[Atom]) -> Atom:
+        expect_args(args, [1, 2, 3], "range")
+        if len(args) == 1:
+            return ValueAtom("list", list(range(args[0].value)))
+        elif len(args) == 2:
+            return ValueAtom("list", list(range(args[0].value, args[1].value)))
+        elif len(args) == 3:
+            return ValueAtom("list", list(range(args[0].value, args[1].value, args[2].value)))
+        return ValueAtom("unit", None)
     def _abs(args: list[Atom]) -> Atom:
         expect_args(args, [1], "abs")
         return ValueAtom("number", abs(args[0].value))
@@ -347,6 +426,7 @@ def init_math(env: Environment):
         if args[0].type == "number":
             return ValueAtom("bool", args[0].value.is_integer())
         return ValueAtom("bool", False)
+    addBuiltin("range", _range, env)
     addBuiltin("abs", _abs, env)
     addBuiltin("ceil", _ceil, env)
     addBuiltin("floor", _floor, env)
@@ -392,10 +472,10 @@ def init_random(env: Environment):
         return ValueAtom("number", random.randint(args[0].value, args[1].value))
     def _random_choice(args: list[Atom]) -> Atom:
         expect_args(args, [1], "random_choice")
-        return random.choice(args[0].elements)
+        return random.choice(args[0].value)
     def _random_shuffle(args: list[Atom]) -> Atom:
         expect_args(args, [1], "random_shuffle")
-        random.shuffle(args[0].elements)
+        random.shuffle(args[0].value)
         return ValueAtom("unit", None)
     def _random_seed(args: list[Atom]) -> Atom:
         expect_args(args, [1], "random_seed")
@@ -427,51 +507,51 @@ def init_list(env: Environment):
     """
     def _list_append(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_append")
-        args[0].elements.append(args[1])
+        args[0].value.append(args[1])
         return ValueAtom("unit", None)
     def _list_insert(args: list[Atom]) -> Atom:
         expect_args(args, [3], "list_insert")
-        args[0].elements.insert(args[1].value, args[2])
+        args[0].value.insert(args[1].value, args[2])
         return ValueAtom("unit", None)
     def _list_remove(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_remove")
-        args[0].elements.remove(args[1])
+        args[0].value.remove(args[1])
         return ValueAtom("unit", None)
     def _list_pop(args: list[Atom]) -> Atom:
         expect_args(args, [1], "list_pop")
-        return args[0].elements.pop()
+        return args[0].value.pop()
     def _list_size(args: list[Atom]) -> Atom:
         expect_args(args, [1], "list_size")
-        return ValueAtom("number", len(args[0].elements))
+        return ValueAtom("number", len(args[0].value))
     def _list_contains(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_contains")
-        return ValueAtom("bool", args[1] in args[0].elements)
+        return ValueAtom("bool", args[1] in args[0].value)
     def _list_index_of(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_index_of")
-        return ValueAtom("number", args[0].elements.index(args[1]))
+        return ValueAtom("number", args[0].value.index(args[1]))
     def _list_slice(args: list[Atom]) -> Atom:
         expect_args(args, [3], "list_slice")
-        return ValueAtom("list", args[0].elements[args[1].value:args[2].value])
+        return ValueAtom("list", args[0].value[args[1].value:args[2].value])
     def _list_sort(args: list[Atom]) -> Atom:
         expect_args(args, [1], "list_sort")
-        args[0].elements.sort()
+        args[0].value.sort()
         return ValueAtom("unit", None)
     def _list_reverse(args: list[Atom]) -> Atom:
         expect_args(args, [1], "list_reverse")
-        args[0].elements.reverse()
+        args[0].value.reverse()
         return ValueAtom("unit", None)
     def _list_split_at(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_split_at")
-        return ValueAtom("tuple", (args[0].elements[:args[1].value], args[0].elements[args[1].value:]))
+        return ValueAtom("tuple", (args[0].value[:args[1].value], args[0].value[args[1].value:]))
     def _list_find(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_find")
-        return ValueAtom("number", args[0].elements.index(args[1]))
+        return ValueAtom("number", args[0].value.index(args[1]))
     def _list_find_last(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_find_last")
-        return ValueAtom("number", args[0].elements[::-1].index(args[1]))
+        return ValueAtom("number", args[0].value[::-1].index(args[1]))
     def _list_find_all(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_find_all")
-        return ValueAtom("list", list(filter(lambda e: e == args[1], args[0].elements)))
+        return ValueAtom("list", list(filter(lambda e: e == args[1], args[0].value)))
     addBuiltin("list_append", _list_append, env)
     addBuiltin("list_insert", _list_insert, env)
     addBuiltin("list_remove", _list_remove, env)
@@ -493,13 +573,13 @@ def init_tuple(env: Environment):
     """
     def _tuple_size(args: list[Atom]) -> Atom:
         expect_args(args, [1], "tuple_size")
-        return ValueAtom("number", len(args[0].elements))
+        return ValueAtom("number", len(args[0].value))
     def _tuple_contains(args: list[Atom]) -> Atom:
         expect_args(args, [2], "tuple_contains")
-        return ValueAtom("bool", args[1] in args[0].elements)
+        return ValueAtom("bool", args[1] in args[0].value)
     def _tuple_slice(args: list[Atom]) -> Atom:
         expect_args(args, [3], "tuple_slice")
-        return ValueAtom("tuple", args[0].elements[args[1].value:args[2].value])
+        return ValueAtom("tuple", args[0].value[args[1].value:args[2].value])
     addBuiltin("tuple_size", _tuple_size, env)
     addBuiltin("tuple_contains", _tuple_contains, env)
     addBuiltin("tuple_slice", _tuple_slice, env)
@@ -541,9 +621,11 @@ def init_stdlib(env: Environment):
     """
     Initialize the standard library.
     """
+    init_util(env)
     init_io(env)
     init_sys(env)
     init_fs(env)
+    init_conv(env)
     init_math(env)
     init_random(env)
     init_type(env)
