@@ -62,19 +62,25 @@ class Parser:
         return t
 
     # Tokenizer functions
-    def __parse_list_of_expressions(self, delimiter: str, end_delimiter: str) -> list[Node]:
+    def __parse_list_of_expressions(self, delimiter: str, end_delimiter: str, accept_trailing_delimiter: bool) -> list[Node]:
         """
         Parse a list of expressions from the lexer and return them as a list.
         The expressions are separated by the given delimiter and the list ends with the given end delimiter.
         No start delimiter is required.
+        If accept_trailing_delimiter is True, a trailing delimiter before the end delimiter is accepted.
         """
         expressions = []
         nt = self.lexer.peek_token()
         while nt.name != end_delimiter:
             expressions.append(self.__parse_expression())
             nt = self.lexer.peek_token()
+            # Check for the delimiter after an expression
             if nt.name == delimiter:
                 self.lexer.next_token()
+                nt = self.lexer.peek_token()
+                # If a trailing delimiter is accepted and the end delimiter is next, break the loop
+                if accept_trailing_delimiter and nt.name == end_delimiter:
+                    break
             elif nt.name != end_delimiter:
                 self.__error(f"Expected '{delimiter}' or '{end_delimiter}' but got '{nt.name}'", nt)
         self.lexer.next_token() # Remove the end delimiter
@@ -122,7 +128,7 @@ class Parser:
                 return self.__parse_if()
             raise Exception(f"Keyword '{t.value}' is not implemented!")
         elif t.name == "LPAREN":
-            elements = self.__parse_list_of_expressions("COMMA", "RPAREN")
+            elements = self.__parse_list_of_expressions("COMMA", "RPAREN", False)
             if len(elements) == 1:
                 lhs = elements[0]
             else:
@@ -134,7 +140,7 @@ class Parser:
             else:
                 return lhs
         elif t.name == "LBRACKET":
-            return ListNode(self.__parse_list_of_expressions("COMMA", "RBRACKET"))
+            return ListNode(self.__parse_list_of_expressions("COMMA", "RBRACKET", True))
         elif t.name == "HASHBRACE":
             return self.__parse_hash_map()
         elif t.name == "LBRACE":
@@ -170,7 +176,7 @@ class Parser:
                 rhs = self.__parse_expression()
                 self.__expect("RBRACKET")
             elif op == 'CALL':
-                rhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN"))
+                rhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN", False))
                 # if self.lexer.peek_token().name == "ASSIGNMENT":
                 #     self.lexer.next_token() # Remove the assignment
                 #     rhs = self.__parse_expression()
