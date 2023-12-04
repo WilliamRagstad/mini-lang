@@ -27,3 +27,12 @@ print("Member access:", b.one, b.one == 1)
 
 d = #{deeper: #{nested: 42 } }
 print("Nested access:", d.deeper.nested, d.deeper.nested == 42)
+
+// Concatenation
+e = #{a: 1} + #{b: 2}
+print("Concatenation:", e, e == #{a: 1, b: 2})
+
+f = #{a: 1} + #{a: 2}
+print("Concatenation:", f, f == #{a: 2})
+
+// Length
