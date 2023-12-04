@@ -111,6 +111,19 @@ all = [
     system_time_weekday,
     system_sleep_s,
     system_sleep_ms,
+    net_ping,
+    net_public_ip,
+    net_ip_info,
+    net_tcp_socket,
+    net_tcp_connect,
+    net_tcp_send,
+    net_tcp_recv,
+    net_tcp_recv_all,
+    net_tcp_recv_until,
+    net_tcp_recv_line,
+    net_tcp_close,
+    net_tcp_bind,
+    net_tcp_accept,
 ]
 print(all)
 print()

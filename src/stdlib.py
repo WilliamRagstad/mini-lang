@@ -1,14 +1,16 @@
 import datetime
+import json
 import math
 import os
 import random
+import socket
 import subprocess
 import sys
 import time
 
 from .environment import Environment
 from typing import Callable
-from .atoms import Atom, BuiltinFunctionAtom, Atom, ValueAtom
+from .atoms import Atom, BuiltinFunctionAtom, Atom, IntrinsicAtom, ValueAtom
 
 # Helper functions
 def addBuiltin(name, func: Callable[[list[Atom]], Atom], env: Environment):
@@ -250,6 +252,122 @@ def init_fs(env: Environment):
     addBuiltin("file_append", _file_append, env)
     addBuiltin("file_size", _file_size, env)
 
+def init_net(env: Environment):
+    """
+    Initialize network functions.
+    """
+    def _net_ping(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "net_ping")
+        host = args[0].raw_str()
+        return ValueAtom("bool", os.system(f"ping -c 1 {host}") == 0)
+    def _net_public_ip(args: list[Atom]) -> Atom:
+        expect_args(args, [0], "net_get_public_ip")
+        return ValueAtom("string", subprocess.check_output("curl -s https://ipinfo.io/ip", shell=True).decode("utf-8").strip())
+    def _net_ip_info(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "net_lookup_ip_info")
+        info_json = subprocess.check_output(f"curl -s https://ipinfo.io/{args[0].raw_str()}/json", shell=True).decode("utf-8").strip()
+        info_result = json.loads(info_json)
+        if isinstance(info_result, dict):
+            return ValueAtom("map", info_result)
+        return ValueAtom("unit", None)
+    # TCP Sockets
+    def _net_tcp_socket(args: list[Atom]) -> Atom:
+        expect_args(args, [0], "net_tcp_socket")
+        return IntrinsicAtom("socket_tcp", socket.socket(socket.AF_INET, socket.SOCK_STREAM))
+    def _net_tcp_connect(args: list[Atom]) -> Atom:
+        expect_args(args, [3], "net_tcp_connect")
+        if args[0].type != "socket_tcp":
+            raise Exception(f"Function 'net_tcp_connect' expected a socket as first argument but got '{args[0].type}'!")
+        sock = args[0].value
+        host = args[1].raw_str()
+        port = args[2].value
+        sock.connect((host, port))
+        return ValueAtom("unit", None)
+    def _net_tcp_send(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "net_tcp_send")
+        if args[0].type != "socket_tcp":
+            raise Exception(f"Function 'net_tcp_send' expected a socket as first argument but got '{args[0].type}'!")
+        sock = args[0].value
+        data = args[1]
+        if data.type == "string":
+            sock.send(data.value.encode("utf-8"))
+        elif data.type == "list":
+            sock.send(bytes(map(lambda a: a.value, data.value)))
+        else:
+            raise Exception(f"Function 'net_tcp_send' expected a string or list as second argument but got '{data.type}'!")
+        return ValueAtom("unit", None)
+    def _net_tcp_recv(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "net_tcp_recv")
+        if args[0].type != "socket_tcp":
+            raise Exception(f"Function 'net_tcp_recv' expected a socket as first argument but got '{args[0].type}'!")
+        sock: socket.socket = args[0].value
+        size = args[1].value
+        data = list(sock.recv(size))
+        return ValueAtom("list", list(map(lambda b: ValueAtom("number", b), data)))
+    def _net_tcp_recv_all(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "net_tcp_recv_all")
+        if args[0].type != "socket_tcp":
+            raise Exception(f"Function 'net_tcp_recv_all' expected a socket as first argument but got '{args[0].type}'!")
+        sock = args[0].value
+        size = args[1].value
+        data = list(sock.recv(size))
+        while len(data) < size:
+            data += list(sock.recv(size - len(data)))
+        return ValueAtom("list", list(map(lambda b: ValueAtom("number", b), data)))
+    def _net_tcp_recv_until(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "net_tcp_recv_until")
+        if args[0].type != "socket_tcp":
+            raise Exception(f"Function 'net_tcp_recv_until' expected a socket as first argument but got '{args[0].type}'!")
+        sock = args[0].value
+        delimiter = args[1].raw_str()
+        data = list(sock.recv_until(delimiter))
+        return ValueAtom("list", list(map(lambda b: ValueAtom("number", b), data)))
+    def _net_tcp_recv_line(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "net_tcp_recv_line")
+        if args[0].type != "socket_tcp":
+            raise Exception(f"Function 'net_tcp_recv_line' expected a socket as first argument but got '{args[0].type}'!")
+        sock = args[0].value
+        data = list(sock.recv_line())
+        return ValueAtom("list", list(map(lambda b: ValueAtom("number", b), data)))
+    def _net_tcp_close(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "net_tcp_close")
+        if args[0].type != "socket_tcp":
+            raise Exception(f"Function 'net_tcp_close' expected a socket as first argument but got '{args[0].type}'!")
+        sock = args[0].value
+        sock.close()
+        return ValueAtom("unit", None)
+    def _net_tcp_bind(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "net_tcp_bind")
+        if args[0].type != "socket_tcp":
+            raise Exception(f"Function 'net_tcp_accept' expected a socket as first argument but got '{args[0].type}'!")
+        sock: socket.socket = args[0].value
+        port = args[1].value
+        sock.bind((socket.gethostname(), port))
+        sock.listen()
+        return ValueAtom("unit", None)
+    def _net_tcp_accept(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "net_tcp_accept")
+        if args[0].type != "socket_tcp":
+            raise Exception(f"Function 'net_tcp_accept' expected a socket as first argument but got '{args[0].type}'!")
+        sock: socket.socket = args[0].value
+        client, _ = sock.accept()
+        return IntrinsicAtom("socket_tcp", client)
+    
+    addBuiltin("net_ping", _net_ping, env)
+    addBuiltin("net_public_ip", _net_public_ip, env)
+    addBuiltin("net_ip_info", _net_ip_info, env)
+    addBuiltin("net_tcp_socket", _net_tcp_socket, env)
+    addBuiltin("net_tcp_connect", _net_tcp_connect, env)
+    addBuiltin("net_tcp_send", _net_tcp_send, env)
+    addBuiltin("net_tcp_recv", _net_tcp_recv, env)
+    addBuiltin("net_tcp_recv_all", _net_tcp_recv_all, env)
+    addBuiltin("net_tcp_recv_until", _net_tcp_recv_until, env)
+    addBuiltin("net_tcp_recv_line", _net_tcp_recv_line, env)
+    addBuiltin("net_tcp_close", _net_tcp_close, env)
+    addBuiltin("net_tcp_bind", _net_tcp_bind, env)
+    addBuiltin("net_tcp_accept", _net_tcp_accept, env)
+
+
 def init_conv(env: Environment):
     """
     Initialize conversion functions.
@@ -300,6 +418,14 @@ def init_conv(env: Environment):
                 return ValueAtom("map", dict(map(lambda t: (t.value[0], t.value[1]), args[0].value)))
             # If it is a list of values, convert it to a map with indices as keys
             return ValueAtom("map", dict(map(lambda t: (ValueAtom("number", t[0]), t[1]), enumerate(args[0].value))))
+        elif args[0].type == "string":
+            # Try to parse the string as JSON
+            try:
+                result = json.loads(args[0].value)
+                if isinstance(result, dict):
+                    return ValueAtom("map", result)
+            except json.JSONDecodeError:
+                pass
         return ValueAtom("unit", None)
     addBuiltin("str", _str, env)
     addBuiltin("int", _int, env)
@@ -625,6 +751,7 @@ def init_stdlib(env: Environment):
     init_io(env)
     init_sys(env)
     init_fs(env)
+    init_net(env)
     init_conv(env)
     init_math(env)
     init_random(env)
