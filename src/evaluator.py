@@ -312,8 +312,8 @@ def evaluate_builtin_function_call(function: BuiltinFunctionAtom, args: list[Ato
     for a in args:
         if not isinstance(a, ValueAtom):
             raise Exception(f"Argument '{a}' does not evaluate to an atomic value")
-        values.append(a.value)
-    return function.func(*values)
+        values.append(a)
+    return function.func(values)
 
 def evaluate_expressions(expressions: list[Node], env: Environment) -> Atom:
     """
