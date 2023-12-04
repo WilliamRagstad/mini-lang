@@ -1,10 +1,11 @@
+#!/usr/bin/env python3
 import sys
 from src.interpreter import interpret, repl
 
 # === Global variables ===
 
-USAGE = f"""Welcome to the mini programming language interpreter!
-Usage: mini (options) [file.mini]
+USAGE = f"""Welcome to the mini interpreter!
+Usage: mini (options) <file>
 
 Options:
     -h, --help      Print this help message and exit
@@ -13,7 +14,8 @@ Options:
 
 Examples:
     mini -r         Enter the REPL
-    mini file.mini  Evaluate the input file\n"""
+    mini main.m     Evaluate the input file
+"""
 
 # === Helper functions ===
 def print_error(msg: str):
@@ -41,5 +43,4 @@ def main(args: list):
         print_error("Unknown option")
 
 if __name__ == '__main__':
-    # Call main with args
     main(sys.argv[1:])
