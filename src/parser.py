@@ -122,7 +122,11 @@ class Parser:
                 return self.__parse_if()
             raise Exception(f"Keyword '{t.value}' is not implemented!")
         elif t.name == "LPAREN":
-            lhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN"))
+            elements = self.__parse_list_of_expressions("COMMA", "RPAREN")
+            if len(elements) == 1:
+                lhs = elements[0]
+            else:
+                lhs = TupleNode(elements)
             # Check for trailing right arrow
             nt = self.lexer.peek_token()
             if nt.name == "RIGHTARROW":
