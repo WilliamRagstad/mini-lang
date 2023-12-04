@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from src.error import print_error_help
-from src.colors import BOLD, BRIGHT_BLACK, BRIGHT_YELLOW, GREEN, RED, RESET, YELLOW
+from src.colors import BOLD, BRIGHT_YELLOW, GREEN, RED, RESET, YELLOW
 from src.interpreter import interpret, repl
 
 # === Global variables ===
