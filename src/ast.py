@@ -36,6 +36,8 @@ class AtomicNode(Node):
 
     def __str__(self):
         value = f"'{self.value}'" if self.valueType == "string" else str(self.value)
+        if self.valueType in ["identifier", "string", "number", "bool"]:
+            return value # No need to wrap in type
         return f"{self.valueType}({value})"
 
 class BlockNode(Node):
