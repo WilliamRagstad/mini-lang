@@ -290,7 +290,7 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
         if isinstance(lhs, FunctionAtom):
             return evaluate_function_call(lhs, args, env)
         elif isinstance(lhs, BuiltinFunctionAtom):
-            return evaluate_builtin_function_call(lhs, args, env)
+            return lhs.func(args) # Call the builtin function
         else:
             raise Exception(f"Cannot call non-function: {lhs}")
 
@@ -305,15 +305,6 @@ def evaluate_function_call(function: FunctionAtom, args: list[Atom], env: Enviro
     for name, val in zip(function.argumentNames, args):
         funcEnv.set(name, val)
     return evaluate_expression(function.body, funcEnv)
-
-def evaluate_builtin_function_call(function: BuiltinFunctionAtom, args: list[Atom], env: Environment) -> Atom:
-    # Check that all arguments are of value types, and then map them to their values
-    values: list[ValueAtom] = []
-    for a in args:
-        if not isinstance(a, ValueAtom):
-            raise Exception(f"Argument '{a}' does not evaluate to an atomic value")
-        values.append(a)
-    return function.func(values)
 
 def evaluate_expressions(expressions: list[Node], env: Environment) -> Atom:
     """
