@@ -233,11 +233,8 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
             # Ensure that the tuples have the same length
             if len(lhs.value) != len(rhs.value):
                 raise Exception(f"Tuple size mismatch: {len(lhs.value)} and {len(rhs.value)}")
-            new_value = []
-            for i in range(len(lhs.value)):
-                dprint(f"Evaluating {lhs.value[i]} {op} {rhs.value[i]}")
-                new_value.append(evaluate_binary_atom_expression("PLUS", lhs.value[i], rhs.value[i], env))
-            return ValueAtom("tuple", new_value)
+            new_value = map(lambda e: evaluate_binary_atom_expression("PLUS", e[0], e[1], env), zip(lhs.value, rhs.value))
+            return ValueAtom("tuple", list(new_value))
         elif lhs.valueType == "map" and rhs.valueType == "map":
             # Concate the maps
             for key, lhs in rhs.value.items():
