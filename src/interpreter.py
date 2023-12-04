@@ -3,6 +3,10 @@ import os
 import subprocess
 from io import open, TextIOBase, StringIO
 
+from .error import print_error, print_error_help
+
+from .colors import BRIGHT_YELLOW, GREEN, RESET
+
 from .parser import Parser
 from .lexer import Lexer
 from .evaluator import evaluate
@@ -80,22 +84,32 @@ def execute(input: TextIOBase, env: Environment, debug = False):
     ast = parser.parse()
     if debug:
         print("== AST ==")
-        print('    ' + '\n    '.join(str(e) for e in ast.expressions))
+        print('  ' + '\n  '.join(str(e) for e in ast.expressions))
         print("== Evaluation ==")
-    result = evaluate(ast, env, debug)
+    try:
+        result = evaluate(ast, env, debug)
+    except Exception as e:
+        if debug:
+            import traceback
+            traceback.print_exc()
+        else:
+            print_error(e)
+        return None # Return None if an error occured
     if debug:
         print("== END ==")
-        print("Result:", result)
+        print("Result:", result, "//", result.type)
     return result, env
 
 # Interpreter mode
 def interpret(filepath: str, debug = False):
+    if not os.path.exists(filepath):
+        print_error_help(f"File '{filepath}' does not exist!")
     with open(filepath, mode='r', buffering=-1, encoding=None, errors=None, newline=None, closefd=True) as f:
-        execute(f, globalEnvironment(), debug)
+        _ = execute(f, globalEnvironment(), debug)
 
 # Repl mode
 def repl(debug = False):
-    print("Welcome to the mini interpreter!")
+    print(f"{BRIGHT_YELLOW}Welcome to the {GREEN}mini{BRIGHT_YELLOW} REPL!{RESET}")
     env = globalEnvironment()
     while True:
         try:
@@ -107,10 +121,14 @@ def repl(debug = False):
         if line == "":
             continue
         try:
-            result, env = execute(StringIO(line), env, debug)
-            if isinstance(result, ValueAtom) and result.valueType == "unit": continue
-            print(str(result))
+            result = execute(StringIO(line), env, debug)
+            if result is None: continue
+            value, env = result
+            if isinstance(value, ValueAtom) and value.valueType == "unit": continue
+            print(str(value))
         except Exception as e:
-            print(e)
             if debug:
-                raise e
+                import traceback
+                traceback.print_exc()
+            else:
+                print(e)
