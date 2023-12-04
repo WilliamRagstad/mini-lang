@@ -20,17 +20,21 @@ def globalEnvironment():
     return env
 
 def execute(input: TextIOBase, env: Environment, debug = False):
-    lexer = Lexer(input, debug)
-    parser = Parser(lexer, debug)
-    if debug:
-        print("== Tokens ==")
-    ast = parser.parse()
-    if debug:
-        print("== AST ==")
-        print('  ' + '\n  '.join(str(e) for e in ast.expressions))
-        print("== Evaluation ==")
     try:
+        lexer = Lexer(input, debug)
+        parser = Parser(lexer, debug)
+        if debug:
+            print("== Tokens ==")
+        ast = parser.parse()
+        if debug:
+            print("== AST ==")
+            print('  ' + '\n  '.join(str(e) for e in ast.expressions))
+            print("== Evaluation ==")
         result = evaluate(ast, env, debug)
+        if debug:
+            print("== END ==")
+            print("Result:", result, "//", result.type)
+        return result, env # Return the result and the environment
     except Exception as e:
         if debug:
             import traceback
@@ -38,10 +42,7 @@ def execute(input: TextIOBase, env: Environment, debug = False):
         else:
             print_error(e)
         return None # Return None if an error occured
-    if debug:
-        print("== END ==")
-        print("Result:", result, "//", result.type)
-    return result, env
+
 
 # Interpreter mode
 def interpret(filepath: str, debug = False):
