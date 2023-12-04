@@ -26,6 +26,9 @@ class Atom():
     def __str__(self):
         return self.memory_repr()
     
+    def __hash__(self) -> int:
+        return hash(self.uid)
+    
     def raw_str(self):
         """
         Returns the raw value without any formatting.
