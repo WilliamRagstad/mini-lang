@@ -37,3 +37,8 @@ f = #{a: 1} + #{a: 2}
 print("Concatenation:", f, f == #{a: 2})
 
 // Length
+print("Size:", map_size(a), map_size(a) == 6)
+
+// Contains
+print("Contains:", map_contains(a, 'key1'), map_contains(a, 'key1') == true)
+print("Contains:", map_contains(a, 'value1'), map_contains(a, 'value1') == false)
