@@ -124,8 +124,8 @@ def repl(debug = False):
             result = execute(StringIO(line), env, debug)
             if result is None: continue
             value, env = result
-            if isinstance(value, ValueAtom) and value.valueType == "unit": continue
-            print(str(value))
+            if isinstance(value, ValueAtom) and value.type == "unit": continue
+            print(value.formatted_str())
         except Exception as e:
             if debug:
                 import traceback

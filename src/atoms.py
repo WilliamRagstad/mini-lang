@@ -24,13 +24,33 @@ class Atom():
         self.type = type
 
     def __str__(self):
+        return self.memory_repr()
+    
+    def raw_str(self):
+        """
+        Returns the raw value without any formatting.
+        For example, a string atom will return the string **without** quotes.
+        """
+        return str(self)
+    
+    def formatted_str(self):
+        """
+        Returns the formatted value.
+        For example, a string atom will return the string **with** quotes.
+        """
+        return str(self)
+
+    def memory_repr(self):
+        """
+        Returns the memory representation of the value.
+        """
         return f"<{self.uid}:{self.type}>"
 
 class ValueAtom(Atom):
     """
     An atomic value node in the abstract syntax tree.
     """
-    def __init__(self, valueType: str, value):
+    def __init__(self, type: str, value):
         """
         Initialize an atomic value node with a value.
 
@@ -40,27 +60,36 @@ class ValueAtom(Atom):
                        E.g. "string", "number", "boolean", "unit", "tuple", "list".
             value: The value of the node.
         """
-        super().__init__("Value", valueType)
-        self.valueType = valueType
+        super().__init__("Value", type)
         self.value = value
 
     def listValueToStr(self):
         return list(map(lambda a: str(a), self.value))
+    
+    def raw_str(self):
+        return self.format(True)
 
-    def __str__(self) -> str:
-        if self.valueType == "string":
-            return f"'{self.value}'"
-        elif self.valueType == "boolean":
+    def formatted_str(self):
+        return self.format(False)
+
+    def format(self, raw: bool) -> str:
+        if self.type == "string":
+            return self.value if raw else f"'{self.value}'"
+        elif self.type == "boolean":
             return str(self.value).lower()
-        elif self.valueType == "unit":
+        elif self.type == "unit":
             return "()"
-        elif self.valueType == "tuple":
+        elif self.type == "tuple":
             return '(' + ", ".join(self.listValueToStr()) + ')'
-        elif self.valueType == "list":
+        elif self.type == "list":
             return '[' + ", ".join(self.listValueToStr()) + ']'
-        elif self.valueType == "map":
+        elif self.type == "map":
             return '#{' + ", ".join(map(lambda t: f"{t[0]}: {t[1]}", self.value.items())) + '}'
         return str(self.value)
+
+
+    def memory_repr(self):
+        return f"<{self.uid}:{self.type}:{self.value}>"
 
     def __eq__(self, __o: object) -> bool:
         return isinstance(__o, ValueAtom) and self.valueType == __o.valueType and self.value == __o.value
@@ -79,7 +108,7 @@ class FunctionAtom(Atom):
         self.environment = environment
         self.name = name if name is not None else "lambda"
 
-    def __str__(self):
+    def memory_repr(self):
         return f"<{self.uid}:{self.name}({', '.join(self.argumentNames)})>"
 
 class BuiltinFunctionAtom(Atom):
@@ -94,5 +123,5 @@ class BuiltinFunctionAtom(Atom):
         self.functionName = functionName
         self.func = func
 
-    def __str__(self):
+    def memory_repr(self):
         return f"<built-in: {self.functionName}>"
