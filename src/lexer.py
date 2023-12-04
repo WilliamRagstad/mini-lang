@@ -220,7 +220,7 @@ class Lexer:
         if c.isalpha() or c == '_':
             t = self.__read_identifier(c)
             if t.value in ["true", "false"]:
-                return self.__token("BOOLEAN", t.value == "true")
+                return self.__token("BOOL", t.value == "true")
             if t.value in ["if", "else", "match", "class", "enum", "while", "for", "break", "continue", "return"]:
                 return self.__token("KEYWORD", t.value)
             return t

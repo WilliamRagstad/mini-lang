@@ -417,8 +417,8 @@ def init_conv(env: Environment):
             return ValueAtom("number", int(args[0].raw_str()))
         except ValueError:
             return ValueAtom("unit", None)
-    def _float(args: list[Atom]) -> Atom:
-        expect_args(args, [1], "float")
+    def _number(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "number")
         try:
             return ValueAtom("number", float(args[0].raw_str()))
         except ValueError:
@@ -465,7 +465,7 @@ def init_conv(env: Environment):
         return ValueAtom("unit", None)
     addBuiltin("str", _str, env)
     addBuiltin("int", _int, env)
-    addBuiltin("float", _float, env)
+    addBuiltin("number", _number, env)
     addBuiltin("bool", _bool, env)
     addBuiltin("list", _list, env)
     addBuiltin("tuple", _tuple, env)
@@ -755,22 +755,25 @@ def init_map(env: Environment):
         return ValueAtom("number", len(args[0].value))
     def _map_contains(args: list[Atom]) -> Atom:
         expect_args(args, [2], "map_contains")
-        return ValueAtom("bool", args[1] in args[0].pairs)
+        for key in args[0].value.keys():
+            if key == args[1].raw_str():
+                return ValueAtom("bool", True)
+        return ValueAtom("bool", False)
     def _map_keys(args: list[Atom]) -> Atom:
         expect_args(args, [1], "map_keys")
-        return ValueAtom("list", list(args[0].pairs.keys()))
+        return ValueAtom("list", list(args[0].value.keys()))
     def _map_values(args: list[Atom]) -> Atom:
         expect_args(args, [1], "map_values")
-        return ValueAtom("list", list(args[0].pairs.values()))
+        return ValueAtom("list", list(args[0].value.values()))
     def _map_items(args: list[Atom]) -> Atom:
         expect_args(args, [1], "map_items")
         tuple_pairs = []
-        for key, value in args[0].pairs.items():
+        for key, value in args[0].value.items():
             tuple_pairs.append(ValueAtom("tuple", (key, value)))
         return ValueAtom("list", tuple_pairs)
     def _map_remove(args: list[Atom]) -> Atom:
         expect_args(args, [2], "map_remove")
-        del args[0].pairs[args[1]]
+        del args[0].value[args[1]]
         return ValueAtom("unit", None)
     addBuiltin("map_size", _map_size, env)
     addBuiltin("map_contains", _map_contains, env)

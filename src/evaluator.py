@@ -118,16 +118,16 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         return FunctionAtom(expression.params, expression.body, env)
     elif isinstance(expression, IfNode):
         cond = evaluate_expression(expression.condition, env)
-        if not isinstance(cond, ValueAtom) or not cond.type == "boolean":
-            raise Exception(f"Condition does not evaluate to a boolean")
+        if not isinstance(cond, ValueAtom) or not cond.type == "bool":
+            raise Exception(f"Condition does not evaluate to a bool")
         if cond.value:
             return evaluate_expression(expression.ifBody, env)
         else:
             # Iterate over the else-ifs
             for cond, body in expression.elseIfs:
                 cond = evaluate_expression(cond, env)
-                if not isinstance(cond, ValueAtom) or not cond.type == "boolean":
-                    raise Exception(f"Condition does not evaluate to a boolean")
+                if not isinstance(cond, ValueAtom) or not cond.type == "bool":
+                    raise Exception(f"Condition does not evaluate to a bool")
                 if cond.value:
                     return evaluate_expression(body, env)
             # Evaluate the else body
@@ -137,8 +137,8 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         rhs = evaluate_expression(expression.rhs, env)
         if op == "MINUS" and compatible_type(rhs, ["number"]):
             return ValueAtom("number", -rhs.value)
-        elif op == "NOT" and compatible_type(rhs, ["boolean"]):
-            return ValueAtom("boolean", not rhs.value)
+        elif op == "NOT" and compatible_type(rhs, ["bool"]):
+            return ValueAtom("bool", not rhs.value)
         else:
             raise Exception(f"Unkown unary operator '{op}'")
     elif isinstance(expression, BinaryNode):
@@ -222,7 +222,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
 
 def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environment) -> Atom:
     dprint(f"Evaluating binary expression {lhs.formatted_str()} {op} {rhs.formatted_str()}")
-    if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "boolean", "list", "tuple", "map"]):
+    if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "bool", "list", "tuple", "map"]):
         if lhs.type == "string" or rhs.type == "string":
             return ValueAtom("string", lhs.raw_str() + rhs.raw_str())
         elif lhs.type == "list" and rhs.type == "list":
@@ -250,24 +250,24 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
         return ValueAtom("number", lhs.value % rhs.value)
     elif op == "POWER" and compatible_types(lhs, rhs, ["number"]):
         return ValueAtom("number", lhs.value ** rhs.value)
-    elif op == "EQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean", "unit", "tuple", "list", "map"]):
+    elif op == "EQUAL" and compatible_types(lhs, rhs, ["number", "string", "bool", "unit", "tuple", "list", "map"]):
         if lhs.type != rhs.type:
-            return ValueAtom("boolean", False)
-        return ValueAtom("boolean", lhs.value == rhs.value)
-    elif op == "NOTEQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
-        return ValueAtom("boolean", lhs.value != rhs.value)
+            return ValueAtom("bool", False)
+        return ValueAtom("bool", lhs.value == rhs.value)
+    elif op == "NOTEQUAL" and compatible_types(lhs, rhs, ["number", "string", "bool"]):
+        return ValueAtom("bool", lhs.value != rhs.value)
     elif op == "LESS" and compatible_types(lhs, rhs, ["number"]):
-        return ValueAtom("boolean", lhs.value < rhs.value)
+        return ValueAtom("bool", lhs.value < rhs.value)
     elif op == "GREATER" and compatible_types(lhs, rhs, ["number"]):
-        return ValueAtom("boolean", lhs.value > rhs.value)
+        return ValueAtom("bool", lhs.value > rhs.value)
     elif op == "LESSEQUAL" and compatible_types(lhs, rhs, ["number"]):
-        return ValueAtom("boolean", lhs.value <= rhs.value)
+        return ValueAtom("bool", lhs.value <= rhs.value)
     elif op == "GREATEREQUAL" and compatible_types(lhs, rhs, ["number"]):
-        return ValueAtom("boolean", lhs.value >= rhs.value)
-    elif op == "AND" and compatible_types(lhs, rhs, ["boolean"]):
-        return ValueAtom("boolean", lhs.value and rhs.value)
-    elif op == "OR" and compatible_types(lhs, rhs, ["boolean"]):
-        return ValueAtom("boolean", lhs.value or rhs.value)
+        return ValueAtom("bool", lhs.value >= rhs.value)
+    elif op == "AND" and compatible_types(lhs, rhs, ["bool"]):
+        return ValueAtom("bool", lhs.value and rhs.value)
+    elif op == "OR" and compatible_types(lhs, rhs, ["bool"]):
+        return ValueAtom("bool", lhs.value or rhs.value)
     elif op == "INDEX" and compatible_type(lhs, ["list", "tuple", "map"]):
         if not isinstance(rhs, ValueAtom):
             raise Exception(f"Indexing expression in not a valid value type: {rhs}")

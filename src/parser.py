@@ -116,7 +116,7 @@ class Parser:
         """
         prev_comment = self.lexer.prev_comment()
         t = self.lexer.next_token()
-        if t.name in ["IDENTIFIER", "STRING", "NUMBER", "BOOLEAN"]:
+        if t.name in ["IDENTIFIER", "STRING", "NUMBER", "BOOL"]:
             value = AtomicNode(t.name.lower(), t.value)
             nt = self.lexer.peek_token()
             if nt.name == "RIGHTARROW":

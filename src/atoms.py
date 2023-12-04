@@ -61,7 +61,7 @@ class IntrinsicAtom(Atom):
         Parameters
         ----------
             type: The type of the value in lower case.
-                       E.g. "string", "number", "boolean", "unit", "tuple", "list".
+                       E.g. "string", "number", "bool", "unit", "tuple", "list".
             value: The value of the node.
         """
         super().__init__("Intrinsic", type)
@@ -84,7 +84,7 @@ class ValueAtom(Atom):
         Parameters
         ----------
             type: The type of the value in lower case.
-                       E.g. "string", "number", "boolean", "unit", "tuple", "list".
+                       E.g. "string", "number", "bool", "unit", "tuple", "list".
             value: The value of the node.
         """
         super().__init__("Value", type)
@@ -102,7 +102,7 @@ class ValueAtom(Atom):
     def format(self, raw: bool) -> str:
         if self.type == "string":
             return self.value if raw else f"'{self.value}'"
-        elif self.type == "boolean":
+        elif self.type == "bool":
             return str(self.value).lower()
         elif self.type == "unit":
             return "()"
