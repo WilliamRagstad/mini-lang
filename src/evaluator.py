@@ -224,7 +224,7 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
     dprint(f"Evaluating binary expression {lhs.formatted_str()} {op} {rhs.formatted_str()}")
     if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "boolean", "list", "tuple", "map"]):
         if lhs.type == "string" or rhs.type == "string":
-            return ValueAtom("string", lhs.value + rhs.value)
+            return ValueAtom("string", lhs.raw_str() + rhs.raw_str())
         elif lhs.type == "list" and rhs.type == "list":
             return ValueAtom("list", lhs.value + rhs.value)
         elif lhs.type == "number" and rhs.type == "number":
