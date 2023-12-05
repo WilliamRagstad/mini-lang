@@ -24,7 +24,7 @@ def assert_eval(input: str, expected: Atom) -> None:
     global all_asserts_passed
     try:
         actual = eval(input)
-        if actual != expected:
+        if not actual.structural_eq(expected):
             all_asserts_passed = False
             print(colored(red, f"  - FAILED AT: {input}"))
             print(colored(yellow, f"    Expected: {expected}, got: {actual}"))
