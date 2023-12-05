@@ -124,9 +124,9 @@ class Parser:
             else:
                 return value
         elif t.name == "KEYWORD":
-            if t.value == "if":
-                return self.__parse_if()
-            raise Exception(f"Keyword '{t.value}' is not implemented!")
+            match t.value:
+                case "if": return self.__parse_if()
+                case _: raise Exception(f"Keyword '{t.value}' is not implemented!")
         elif t.name == "LPAREN":
             lhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN", False))
             # Check for trailing right arrow
