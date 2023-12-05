@@ -665,6 +665,64 @@ def init_type(env: Environment):
     addBuiltin("typeof", _typeof, env)
     addBuiltin("is_type", _is_type, env)
 
+def init_str(env: Environment):
+    """
+    Initialize string operations.
+    """
+    def _str_trim(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "str_trim")
+        return ValueAtom("string", args[0].raw_str().strip())
+    def _str_trim_start(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "str_trim_start")
+        return ValueAtom("string", args[0].raw_str().lstrip())
+    def _str_trim_end(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "str_trim_end")
+        return ValueAtom("string", args[0].raw_str().rstrip())
+    def _str_split(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "str_split")
+        return ValueAtom("list", list(map(lambda s: ValueAtom("string", s), args[0].raw_str().split(args[1].raw_str()))))
+    def _str_chars(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "str_chars")
+        return ValueAtom("list", list(map(lambda c: ValueAtom("string", c), args[0].raw_str())))
+    def _str_upper(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "str_upper")
+        return ValueAtom("string", args[0].raw_str().upper())
+    def _str_lower(args: list[Atom]) -> Atom:
+        expect_args(args, [1], "str_lower")
+        return ValueAtom("string", args[0].raw_str().lower())
+    def _str_starts_with(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "str_starts_with")
+        return ValueAtom("bool", args[0].raw_str().startswith(args[1].raw_str()))
+    def _str_ends_with(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "str_ends_with")
+        return ValueAtom("bool", args[0].raw_str().endswith(args[1].raw_str()))
+    def _str_contains(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "str_contains")
+        return ValueAtom("bool", args[1].raw_str() in args[0].raw_str())
+    def _str_index_of(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "str_index_of")
+        return ValueAtom("number", args[0].raw_str().index(args[1].raw_str()))
+    def _str_last_index_of(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "str_last_index_of")
+        return ValueAtom("number", args[0].raw_str().rindex(args[1].raw_str()))
+    def _str_replace(args: list[Atom]) -> Atom:
+        expect_args(args, [3], "str_replace")
+        return ValueAtom("string", args[0].raw_str().replace(args[1].raw_str(), args[2].raw_str()))
+
+    addBuiltin("str_trim", _str_trim, env)
+    addBuiltin("str_trim_start", _str_trim_start, env)
+    addBuiltin("str_trim_end", _str_trim_end, env)
+    addBuiltin("str_split", _str_split, env)
+    addBuiltin("str_chars", _str_chars, env)
+    addBuiltin("str_upper", _str_upper, env)
+    addBuiltin("str_lower", _str_lower, env)
+    addBuiltin("str_starts_with", _str_starts_with, env)
+    addBuiltin("str_ends_with", _str_ends_with, env)
+    addBuiltin("str_contains", _str_contains, env)
+    addBuiltin("str_index_of", _str_index_of, env)
+    addBuiltin("str_last_index_of", _str_last_index_of, env)
+    addBuiltin("str_replace", _str_replace, env)
+
 def init_list(env: Environment):
     """
     Initialize list operations.
@@ -794,6 +852,7 @@ def init_stdlib(env: Environment):
     init_math(env)
     init_random(env)
     init_type(env)
+    init_str(env)
     init_list(env)
     init_tuple(env)
     init_map(env)
