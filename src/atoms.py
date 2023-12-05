@@ -26,8 +26,16 @@ class Atom():
     def __str__(self):
         return self.memory_repr()
     
-    def __hash__(self) -> int:
-        return hash(self.uid)
+    def structural_eq(self, other: "Atom") -> bool:
+        """
+        Check if two atoms are structurally equal.
+        """
+        raise Exception(f"Structural equality not implemented for base class '{self.__class__.__name__}'!")
+    
+    def __eq__(self, __value: object) -> bool:
+        if isinstance(__value, Atom):
+            return self.structural_eq(__value)
+        return False
     
     def raw_str(self):
         """
@@ -70,8 +78,8 @@ class IntrinsicAtom(Atom):
     def memory_repr(self):
         return f"<{self.uid}:intrinsic:{self.type}:{self.value}>"
 
-    def __eq__(self, __o: object) -> bool:
-        return isinstance(__o, IntrinsicAtom) and self.type == __o.type and self.value == __o.value
+    def structural_eq(self, other: "Atom") -> bool:
+        return isinstance(other, IntrinsicAtom) and self.type == other.type and self.value == other.value
 
 class ValueAtom(Atom):
     """
@@ -119,10 +127,20 @@ class ValueAtom(Atom):
 
 
     def memory_repr(self):
-
-    def __eq__(self, __o: object) -> bool:
-        return isinstance(__o, ValueAtom) and self.type == __o.type and self.value == __o.value
         return f"<{self.uid}:{self.type}:{self.formatted_str()}>"
+
+    def structural_eq(self, other: "Atom") -> bool:
+        if isinstance(other, ValueAtom) and self.type == other.type:
+            match self.type:
+                case "map":
+                    # todo
+                    pass
+                case "tuple" | "list":
+                    if len(self.value) != len(other.value): return False
+                    return all(map(lambda t: t[0].structural_eq(t[1]), zip(self.value, other.value)))
+                case "unit": return True # Unit is always equal
+                case _: return self.value == other.value
+        return False
 
 class FunctionAtom(Atom):
     """
@@ -140,6 +158,9 @@ class FunctionAtom(Atom):
 
     def memory_repr(self):
         return f"<{self.uid}:{self.name}({', '.join(self.argumentNames)})>"
+    
+    def structural_eq(self, other: "Atom") -> bool:
+        return isinstance(other, FunctionAtom) and self.uid == other.uid # Compare by uid
 
 class BuiltinFunctionAtom(Atom):
     """
@@ -155,3 +176,6 @@ class BuiltinFunctionAtom(Atom):
 
     def memory_repr(self):
         return f"<built-in: {self.functionName}>"
+
+    def structural_eq(self, other: "Atom") -> bool:
+        return isinstance(other, BuiltinFunctionAtom) and self.uid == other.uid # Compare by uid
