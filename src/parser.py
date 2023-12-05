@@ -180,15 +180,7 @@ class Parser:
                     if self.lexer.peek_token().name == "COLON":
                         self.lexer.next_token()
                         step = self.__parse_expression()
-                    # Cast to int
-                    try:
-                        start = int(rhs.value)
-                        end = int(end.value)
-                        if step is not None:
-                            step = int(step.value)
-                        rhs = SliceNode(start, end, step)
-                    except ValueError:
-                        raise Exception("Slice index must be integers!")
+                    rhs = SliceNode(rhs, end, step)
                 self.__expect("RBRACKET")
             elif op == 'CALL':
                 rhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN", False))

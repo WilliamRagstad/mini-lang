@@ -200,8 +200,16 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                 return lhs.value[expression.right.value]
             raise Exception(f"Cannot access member of {lhs.type}, not implemented yet")
         elif op == "INDEX" and isinstance(expression.right, SliceNode): # Slice indexing
-            start, end = expression.right.start, expression.right.end
-            step = expression.right.step if expression.right.step is not None else 1
+            # Evaluate the slice indices
+            start = evaluate_expression(expression.right.start, env)
+            end = evaluate_expression(expression.right.end, env)
+            step = ValueAtom("number", 1)
+            if expression.right.step is not None:
+                step = evaluate_expression(expression.right.step, env)
+            # Check that the slice indices are integers
+            if not compatible_types(start, end, ["number"]) or not compatible_type(step, ["number"]):
+                raise Exception(f"Slice indices must be integers")
+            start, end, step = int(start.value), int(end.value), int(step.value)
             if compatible_type(lhs, ["list", "tuple"]):
                 lhs_slice = lhs.value[start:end:step]
                 element = None
