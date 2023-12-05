@@ -287,16 +287,19 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
             elif rhs.type == "unit":
                 args = []
         # args = list(map(lambda e: evaluate_expression(e, env), rhs.value))
-        if isinstance(lhs, FunctionAtom):
-            return evaluate_function_call(lhs, args, env)
-        elif isinstance(lhs, BuiltinFunctionAtom):
-            return lhs.func(args) # Call the builtin function
-        else:
-            raise Exception(f"Cannot call non-function: {lhs}")
+        return evaluate_call(lhs, args)
 
     return None
 
-def evaluate_function_call(function: FunctionAtom, args: list[Atom], env: Environment) -> Atom:
+def evaluate_call(function: FunctionAtom | BuiltinFunctionAtom, args: list[Atom]) -> Atom:
+    if isinstance(function, FunctionAtom):
+        return evaluate_function_atom_call(function, args)
+    elif isinstance(function, BuiltinFunctionAtom):
+        return function.func(args) # Call the builtin function
+    else:
+        raise Exception(f"Cannot call non-function: {function}")
+
+def evaluate_function_atom_call(function: FunctionAtom, args: list[Atom]) -> Atom:
     # Build a new environment for the function call
     # where the arguments are bound to the parameters
     funcEnv = Environment(f"<function {function.name}>", function.environment)
