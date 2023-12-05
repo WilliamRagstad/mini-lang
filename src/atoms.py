@@ -109,7 +109,9 @@ class ValueAtom(Atom):
 
     def format(self, raw: bool) -> str:
         if self.type == "string":
-            return self.value if raw else f"'{self.value}'"
+            if raw: return self.value
+            escaped = self.value.replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r")
+            return f"'{escaped}'"
         elif self.type == "bool":
             return str(self.value).lower()
         elif self.type == "unit":
