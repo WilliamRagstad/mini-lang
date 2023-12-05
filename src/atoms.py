@@ -135,8 +135,6 @@ class ValueAtom(Atom):
         if isinstance(other, ValueAtom) and self.type == other.type:
             match self.type:
                 case "map":
-                    # 1. Check if the keys are the same
-                    # 2. Check if the values are the same
                     if len(self.value) != len(other.value): return False
                     for key in self.value.keys():
                         if key not in other.value: return False
