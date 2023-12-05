@@ -1,4 +1,4 @@
-from .util import assert_eval, get_all_asserts_passed, new_test_suite, ValueAtom
+from .util import assert_eval, done, get_all_asserts_passed, new_test_suite, ValueAtom
 
 def test_create_list():
     print("- Testing create list...")
@@ -34,4 +34,4 @@ def run_all() -> bool:
     return get_all_asserts_passed()
 
 if __name__ == "__main__":
-    run_all()
+    done(run_all())
