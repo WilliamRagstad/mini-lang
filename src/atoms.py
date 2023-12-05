@@ -91,7 +91,7 @@ class ValueAtom(Atom):
         self.value = value
 
     def listValueToStr(self):
-        return list(map(lambda a: str(a), self.value))
+        return list(map(lambda a: a.formatted_str(), self.value))
     
     def raw_str(self):
         return self.format(True)

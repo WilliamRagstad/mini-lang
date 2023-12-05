@@ -105,7 +105,7 @@ class Parser:
         """
         result = []
         for e in nodes:
-            if not (isinstance(e, AtomicNode) or e.name == "IDENTIFIER"):
+            if not (isinstance(e, AtomicNode) or e.type == "identifier"):
                 raise Exception(f"Lambda argument '{e}' is not an identifier!")
             result.append(e.value)
         return result
