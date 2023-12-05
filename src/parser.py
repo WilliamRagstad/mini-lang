@@ -128,16 +128,14 @@ class Parser:
                 return self.__parse_if()
             raise Exception(f"Keyword '{t.value}' is not implemented!")
         elif t.name == "LPAREN":
-            elements = self.__parse_list_of_expressions("COMMA", "RPAREN", False)
-            if len(elements) == 1:
-                lhs = elements[0]
-            else:
-                lhs = TupleNode(elements)
+            lhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN", False))
             # Check for trailing right arrow
             nt = self.lexer.peek_token()
             if nt.name == "RIGHTARROW":
                 return self.__parse_lambda(lhs.elements)
             else:
+                if len(lhs.elements) == 1:
+                    lhs = lhs.elements[0]
                 return lhs
         elif t.name == "LBRACKET":
             return ListNode(self.__parse_list_of_expressions("COMMA", "RBRACKET", True))
