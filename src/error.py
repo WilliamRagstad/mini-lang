@@ -5,7 +5,7 @@ from .colors import BRIGHT_BLACK, RED, RESET
 
 
 def print_error(msg: str):
-    print(f"{RED}{msg}{RESET}")
+    print(f"{RED}Error: {msg}{RESET}")
 
 
 def print_error_help(msg: str, exit = True):
