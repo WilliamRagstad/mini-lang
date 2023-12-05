@@ -119,10 +119,10 @@ class ValueAtom(Atom):
 
 
     def memory_repr(self):
-        return f"<{self.uid}:{self.type}:{self.value}>"
 
     def __eq__(self, __o: object) -> bool:
         return isinstance(__o, ValueAtom) and self.type == __o.type and self.value == __o.value
+        return f"<{self.uid}:{self.type}:{self.formatted_str()}>"
 
 class FunctionAtom(Atom):
     """
