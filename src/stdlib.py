@@ -7,9 +7,11 @@ import socket
 import subprocess
 import sys
 import time
+from typing import Callable
+
+from .evaluator import evaluate_call
 
 from .environment import Environment
-from typing import Callable
 from .atoms import Atom, BuiltinFunctionAtom, Atom, IntrinsicAtom, ValueAtom
 
 # Helper functions
@@ -710,6 +712,10 @@ def init_list(env: Environment):
     def _list_find_all(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_find_all")
         return ValueAtom("list", list(filter(lambda e: e == args[1], args[0].value)))
+    def _list_map(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "list_map")
+        return ValueAtom("list", list(map(lambda e: evaluate_call(args[1], [e]), args[0].value)))
+
     addBuiltin("list_append", _list_append, env)
     addBuiltin("list_insert", _list_insert, env)
     addBuiltin("list_remove", _list_remove, env)
@@ -723,6 +729,7 @@ def init_list(env: Environment):
     addBuiltin("list_find", _list_find, env)
     addBuiltin("list_find_last", _list_find_last, env)
     addBuiltin("list_find_all", _list_find_all, env)
+    addBuiltin("list_map", _list_map, env)
 
 def init_tuple(env: Environment):
     """

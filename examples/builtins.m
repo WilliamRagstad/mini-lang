@@ -64,6 +64,7 @@ all = [
     list_slice,
     list_reverse,
     list_split_at,
+    list_map,
     tuple_size,
     tuple_contains,
     tuple_slice,
