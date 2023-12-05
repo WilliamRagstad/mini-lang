@@ -100,17 +100,17 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
     elif isinstance(expression, ListNode):
         return ValueAtom("list", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
     elif isinstance(expression, MapNode):
-        map_values: dict[str | int, Atom] = {}
+        map_values: dict[str, Atom] = {}
         for key, value in expression.pairs.items():
             if not isinstance(key, AtomicNode):
                 raise Exception(f"Key in map is not an atomic value")
             if key.type == "number" and key.value.is_integer():
                 key.value = int(key.value)
                 key.type = "integer"
-            if key.type not in ["identifier", "string", "integer"]:
-                raise Exception(f"Key in map is not an identifier, string or integer number")
+            if key.type not in ["identifier", "string", "integer", "bool"]:
+                raise Exception(f"Key in map is not an identifier, string, integer or bool")
             value = evaluate_expression(value, env)
-            map_values[key.value] = value
+            map_values[str(key.value)] = value
         return ValueAtom("map", map_values)
     elif isinstance(expression, BlockNode):
         return evaluate_expressions(expression.expressions, Environment(f"<block>", env))
@@ -282,10 +282,16 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
     elif op == "INDEX" and compatible_type(lhs, ["list", "tuple", "map"]):
         if not isinstance(rhs, ValueAtom):
             raise Exception(f"Indexing expression in not a valid value type: {rhs}")
-        if rhs.type in ["number", "string"]:
-            index = rhs.value
-            element: Atom = lhs.value[index]
-            dprint(f"Indexing {lhs.type}: {lhs.formatted_str()} with index {index} -> {element.formatted_str()}")
+        if rhs.type in ["number", "string", "bool"]:
+            if lhs.type == "list" or lhs.type == "tuple":
+                element: Atom = lhs.value[rhs.value]
+            elif lhs.type == "map":
+                index = rhs.raw_str()
+                if index not in lhs.value:
+                    print(lhs.value)
+                    raise Exception(f"Map does not contain key '{index}'")
+                element: Atom = lhs.value[index]
+            dprint(f"Indexing {lhs.type}: {lhs.formatted_str()} with index {rhs.formatted_str()} -> {element.formatted_str()}")
             return element
         else:
             raise Exception(f"Indexing expression does not evaluate to an integer or string")
