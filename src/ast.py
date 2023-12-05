@@ -109,6 +109,23 @@ class ListNode(Node):
     def formatted_str(self):
         return '[' + ", ".join(map(str, self.elements)) + ']'
 
+class SliceNode(Node):
+    """
+    A slice node in the abstract syntax tree.
+    """
+    def __init__(self, start: int, end: int, step: int | None):
+        """
+        Initialize a slice node with a start, end and step.
+        """
+        super().__init__("Slice")
+        self.start = start
+        self.end = end
+        self.step = step
+
+    def formatted_str(self):
+        step = f":{self.step}" if self.step is not None else ""
+        return f"<slice {self.start}:{self.end}{step}>"
+
 class MapNode(Node):
     """
     A hash map node in the abstract syntax tree.

@@ -1,5 +1,5 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, ValueAtom
-from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, SliceNode, TupleNode, UnaryNode
 from .environment import Environment
 
 # Global variables
@@ -199,6 +199,17 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                     raise Exception(f"Map does not contain key '{expression.right.value}'")
                 return lhs.value[expression.right.value]
             raise Exception(f"Cannot access member of {lhs.type}, not implemented yet")
+        elif op == "INDEX" and isinstance(expression.right, SliceNode): # Slice indexing
+            start, end = expression.right.start, expression.right.end
+            step = expression.right.step if expression.right.step is not None else 1
+            if compatible_type(lhs, ["list", "tuple"]):
+                lhs_slice = lhs.value[start:end:step]
+                element = None
+                if lhs.type == "list": element = ValueAtom("list", lhs_slice)
+                elif lhs.type == "tuple": element = ValueAtom("tuple", lhs_slice)
+                else: raise Exception(f"Cannot slice index {lhs.type}")
+                dprint(f"Indexing {lhs.type}: {lhs.formatted_str()} with slice {start}:{end}:{step} -> {element.formatted_str()}")
+                return element
 
         rhs = evaluate_expression(expression.right, env)
         # The rest of the operators rely on the right hand side being evaluated first
@@ -273,8 +284,8 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
             raise Exception(f"Indexing expression in not a valid value type: {rhs}")
         if rhs.type in ["number", "string"]:
             index = rhs.value
-            element = lhs.value[index]
-            dprint(f"Indexing {lhs.type}: {lhs.value} with index {index} -> {element}")
+            element: Atom = lhs.value[index]
+            dprint(f"Indexing {lhs.type}: {lhs.formatted_str()} with index {index} -> {element.formatted_str()}")
             return element
         else:
             raise Exception(f"Indexing expression does not evaluate to an integer or string")

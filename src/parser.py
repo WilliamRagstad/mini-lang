@@ -1,6 +1,6 @@
 # Parser class
 from .lexer import Lexer, Token
-from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, SliceNode, TupleNode, UnaryNode
 
 # Left associative infix operators binding powers
 precedence_left = {
@@ -172,6 +172,23 @@ class Parser:
             if op == "INDEX":
                 self.__dprint(f"Parsing indexing expression")
                 rhs = self.__parse_expression()
+                # Check if range index
+                if self.lexer.peek_token().name == "COLON":
+                    self.lexer.next_token()
+                    end = self.__parse_expression()
+                    step = None
+                    if self.lexer.peek_token().name == "COLON":
+                        self.lexer.next_token()
+                        step = self.__parse_expression()
+                    # Cast to int
+                    try:
+                        start = int(rhs.value)
+                        end = int(end.value)
+                        if step is not None:
+                            step = int(step.value)
+                        rhs = SliceNode(start, end, step)
+                    except ValueError:
+                        raise Exception("Slice index must be integers!")
                 self.__expect("RBRACKET")
             elif op == 'CALL':
                 rhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN", False))
