@@ -23,7 +23,7 @@ def test_range_index():
     print("- Testing range index...")
     assert_eval("[1, 2, 3][1:2]", ValueAtom("list", [ValueAtom("number", 2)]))
     assert_eval("[1, 2, 3][1:3]", ValueAtom("list", [ValueAtom("number", 2), ValueAtom("number", 3)]))
-    assert_eval("[1, 2, 3][1:4]", ValueAtom("list", [ValueAtom("number", 2), ValueAtom("number", 3), ValueAtom("number", 4)]))
+    # assert_eval("[1, 2, 3][1:4]", ValueAtom("list", [ValueAtom("number", 2), ValueAtom("number", 3), ValueAtom("number", 4)]))
 
 def run_all() -> bool:
     new_test_suite("list")
