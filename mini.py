@@ -37,8 +37,7 @@ def main(args: list):
     # Options
     if '--debug' in args or '-d' in args:
         debug = True
-        args.remove('--debug')
-        args.remove('-d')
+        args.remove('--debug') if '--debug' in args else args.remove('-d')
     if len(args) == 0 or '--help' in args or '-h' in args :
         print(USAGE)
         sys.exit(0)
