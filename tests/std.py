@@ -14,7 +14,7 @@ def run_all() -> bool:
     print("- Testing system run function")
     assert_eval("system_run(\"echo Hello World\", true)", ValueAtom("unit", None))
     print("- Testing system output function")
-    assert_eval("system_output(\"echo Hello World\", true)", ValueAtom("string", "Hello World\n"))
+    assert_eval("str_trim(system_output(\"echo Hello World\", true))", ValueAtom("string", "Hello World"))
     print("- Testing file read function")
 
     return get_all_asserts_passed()
