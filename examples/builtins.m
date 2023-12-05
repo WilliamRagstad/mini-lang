@@ -6,7 +6,7 @@ all = [
     typeof,
     str,
     int,
-    float,
+    number,
     bool,
     list,
     tuple,
