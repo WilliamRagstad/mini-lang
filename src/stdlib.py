@@ -694,10 +694,6 @@ def init_list(env: Environment):
     def _list_slice(args: list[Atom]) -> Atom:
         expect_args(args, [3], "list_slice")
         return ValueAtom("list", args[0].value[args[1].value:args[2].value])
-    def _list_sort(args: list[Atom]) -> Atom:
-        expect_args(args, [1], "list_sort")
-        args[0].value.sort()
-        return ValueAtom("unit", None)
     def _list_reverse(args: list[Atom]) -> Atom:
         expect_args(args, [1], "list_reverse")
         args[0].value.reverse()
@@ -722,7 +718,6 @@ def init_list(env: Environment):
     addBuiltin("list_contains", _list_contains, env)
     addBuiltin("list_index_of", _list_index_of, env)
     addBuiltin("list_slice", _list_slice, env)
-    addBuiltin("list_sort", _list_sort, env)
     addBuiltin("list_reverse", _list_reverse, env)
     addBuiltin("list_split_at", _list_split_at, env)
     addBuiltin("list_find", _list_find, env)

@@ -62,7 +62,6 @@ all = [
     list_index_of,
     list_find_all,
     list_slice,
-    list_sort,
     list_reverse,
     list_split_at,
     tuple_size,
