@@ -135,8 +135,13 @@ class ValueAtom(Atom):
         if isinstance(other, ValueAtom) and self.type == other.type:
             match self.type:
                 case "map":
-                    # todo
-                    pass
+                    # 1. Check if the keys are the same
+                    # 2. Check if the values are the same
+                    if len(self.value) != len(other.value): return False
+                    for key in self.value.keys():
+                        if key not in other.value: return False
+                        if not self.value[key].structural_eq(other.value[key]): return False
+                    return True
                 case "tuple" | "list":
                     if len(self.value) != len(other.value): return False
                     return all(map(lambda t: t[0].structural_eq(t[1]), zip(self.value, other.value)))
