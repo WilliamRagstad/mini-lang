@@ -2,6 +2,7 @@
 from io import StringIO
 import os
 import sys
+import webbrowser
 from src.atoms import ValueAtom
 from src.error import print_error_help
 from src.colors import BOLD, BRIGHT_YELLOW, GREEN, LOGO, RESET
@@ -11,18 +12,57 @@ from src.interpreter import execute, globalEnvironment
 
 USAGE = f"""{BRIGHT_YELLOW}Welcome to the {LOGO} {BRIGHT_YELLOW}interpreter!{RESET}
 
-{BOLD}Usage:{RESET} mini (options) <file>
+{BOLD}Usage:{RESET} mini (command) (options) (<file>)
+
+{BOLD}Commands:{RESET}
+    repl, r         Start the REPL
+    test, t         Run the test suite
+    docs, d         Open the documentation
+    compile, c      Compile the interpreter to a
+                    cross-platform executable binary
+    <file>          Interpret the given file
 
 {BOLD}Options:{RESET}
-    -h, --help      Print this help message and exit
-    -r, --repl      Start the REPL
-    --debug         Enable debug mode
+    --help, -h      Print this help message and exit
+    --debug, -d     Enable debug mode
 
 {BOLD}Examples:{RESET}
-    mini -r         Enter the REPL
-    mini main.m     Evaluate the input file
+    mini r          Enter the REPL
+    mini main.m     Interpret the file main.m
 """
 
+# === Main ===
+def main(args: list):
+    debug = False
+    # Options
+    if '--debug' in args or '-d' in args:
+        debug = True
+        args.remove('--debug')
+        args.remove('-d')
+    if len(args) == 0 or '--help' in args or '-h' in args :
+        print(USAGE)
+        sys.exit(0)
+    # Commands
+    if 'repl' in args or 'r' in args:
+        repl(debug)
+        sys.exit(0)
+    elif 'test' in args or 't' in args:
+        print_error_help("Not implemented yet!")
+        sys.exit(0)
+    elif 'docs' in args or 'd' in args:
+        webbrowser.open('https://www.mini-lang.org/documentation')
+        sys.exit(0)
+    elif 'compile' in args or 'c' in args:
+        print_error_help("Not implemented yet!")
+        sys.exit(0)
+
+    # Interpret file
+    if len(args) == 1:
+        interpret(args[-1], debug)
+    elif len(args) > 1:
+        print_error_help("Too many arguments, expected a single file!")
+    else:
+        print_error_help("Unknown option")
 
 # Interpreter mode
 def interpret(filepath: str, debug = False):
@@ -33,7 +73,7 @@ def interpret(filepath: str, debug = False):
 
 # Repl mode
 def repl(debug = False):
-    print(f"{BRIGHT_YELLOW}Welcome to the {LOGO} {BRIGHT_YELLOW}REPL!")
+    print(f"{BRIGHT_YELLOW}Welcome to the {LOGO} {BRIGHT_YELLOW}REPL!{RESET}")
     env = globalEnvironment()
     while True:
         try:
@@ -56,27 +96,6 @@ def repl(debug = False):
                 traceback.print_exc()
             else:
                 print(e)
-
-# === Main ===
-def main(args: list):
-    debug = False
-    if '--debug' in args:
-        debug = True
-        args.remove('--debug')
-    if len(args) == 0 or '-h' in args or '--help' in args:
-        print(USAGE)
-        sys.exit(0)
-    elif '-r' in args or '--repl' in args:
-        repl(debug)
-        sys.exit(0)
-
-    # Evaluate
-    elif len(args) > 1:
-        print_error_help("Too many arguments, expected a single file!")
-    elif len(args) == 1:
-        interpret(args[-1], debug)
-    else:
-        print_error_help("Unknown option")
 
 if __name__ == '__main__':
     main(sys.argv[1:])
