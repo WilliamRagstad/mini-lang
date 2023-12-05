@@ -16,7 +16,6 @@ USAGE = f"""{BRIGHT_YELLOW}Welcome to the {LOGO} {BRIGHT_YELLOW}interpreter!{RES
 
 {BOLD}Commands:{RESET}
     repl, r         Start the REPL
-    test, t         Run the test suite
     docs, d         Open the documentation
     compile, c      Compile the interpreter to a
                     cross-platform executable binary
@@ -44,9 +43,6 @@ def main(args: list):
     # Commands
     if 'repl' in args or 'r' in args:
         repl(debug)
-        sys.exit(0)
-    elif 'test' in args or 't' in args:
-        print_error_help("Not implemented yet!")
         sys.exit(0)
     elif 'docs' in args or 'd' in args:
         webbrowser.open('https://www.mini-lang.org/documentation')
