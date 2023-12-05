@@ -16,7 +16,7 @@ USAGE = f"""{BRIGHT_YELLOW}Welcome to the {LOGO} {BRIGHT_YELLOW}interpreter!{RES
 {BOLD}Options:{RESET}
     -h, --help      Print this help message and exit
     -r, --repl      Start the REPL
-    --debug     Enable debug mode
+    --debug         Enable debug mode
 
 {BOLD}Examples:{RESET}
     mini -r         Enter the REPL
