@@ -193,7 +193,7 @@ class Parser:
     def __parse_hash_map(self) -> MapNode:
         """
         Parse a hash map from the lexer.
-        Example: { "key1" : "value1", "key2" : "value2", 12 : "value3" }
+        Example: { "key1" : "value1", key2 : "value2", 12 : "value3" }
         """
         pairs = {}
         nt = self.lexer.peek_token()

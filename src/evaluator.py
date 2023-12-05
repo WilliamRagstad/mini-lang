@@ -164,7 +164,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                 else:
                     raise Exception(f"Cannot set member of non-identifer values")
             elif isinstance(expression.left, BinaryNode) and expression.left.operator == "CALL":
-                # Function declaration
+                # Function declaration 
                 functionName = expression.left.left
                 if not is_identifier(functionName):
                     raise Exception(f"Function name is not an identifier")
