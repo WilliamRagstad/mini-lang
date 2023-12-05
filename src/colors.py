@@ -36,4 +36,7 @@ BG_BRIGHT_MAGENTA = "\u001b[45;1m"
 BG_BRIGHT_CYAN = "\u001b[46;1m"
 BG_BRIGHT_WHITE = "\u001b[47;1m"
 
-# Reference: https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797# Reference: https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
+# Reference: https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
+
+# Logotype: mini (green bg white fg) lang (no bg red fg)
+LOGO = f"{RESET + BG_GREEN + WHITE + BOLD} mini {RESET + BRIGHT_RED + ITALIC + BOLD} lang{RESET}"
