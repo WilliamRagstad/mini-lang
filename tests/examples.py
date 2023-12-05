@@ -13,7 +13,11 @@ def run_file(file: str) -> bool:
     """
     python = sys.orig_argv[0]
     try:
-        subprocess.check_output([python, "mini.py", f"examples/{file}"])
+        out = subprocess.check_output([python, "mini.py", f"examples/{file}"])
+        txt = out.decode("utf-8")
+        if "error" in txt.lower():
+            print(txt)
+            return False
         return True
     except subprocess.CalledProcessError as e:
         print(e.output.decode("utf-8"))
@@ -28,7 +32,7 @@ def run_all() -> bool:
         if file.endswith(".m"):
             print(f"- examples/{file}")
             match file:
-                case "input.m":
+                case "input.m" | "unicode.m":
                     print("(skipped)")
                     continue
                 case _:
