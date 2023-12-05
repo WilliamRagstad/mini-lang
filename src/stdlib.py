@@ -770,6 +770,28 @@ def init_list(env: Environment):
     def _list_map(args: list[Atom]) -> Atom:
         expect_args(args, [2], "list_map")
         return ValueAtom("list", list(map(lambda e: evaluate_call(args[1], [e]), args[0].value)))
+    def _list_filter(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "list_filter")
+        return ValueAtom("list", list(filter(lambda e: evaluate_call(args[1], [e]).value, args[0].value)))
+    def _list_reduce(args: list[Atom]) -> Atom:
+        expect_args(args, [2, 3], "list_reduce")
+        if len(args) == 2:
+            acc = args[0].value[0]
+            for e in args[0].value[1:]: acc = evaluate_call(args[1], [acc, e])
+            return acc
+        else: # len(args) == 3
+            acc = args[2]
+            for e in args[0].value: acc = evaluate_call(args[1], [acc, e])
+            return acc
+    def _list_group_by(args: list[Atom]) -> Atom:
+        expect_args(args, [2], "list_group_by")
+        groups = {}
+        for e in args[0].value:
+            key = evaluate_call(args[1], [e]).raw_str()
+            if key not in groups:
+                groups[key] = ValueAtom("list", [])
+            groups[key].value.append(e)
+        return ValueAtom("map", groups)
 
     addBuiltin("list_append", _list_append, env)
     addBuiltin("list_insert", _list_insert, env)
@@ -784,6 +806,9 @@ def init_list(env: Environment):
     addBuiltin("list_find_last", _list_find_last, env)
     addBuiltin("list_find_all", _list_find_all, env)
     addBuiltin("list_map", _list_map, env)
+    addBuiltin("list_filter", _list_filter, env)
+    addBuiltin("list_reduce", _list_reduce, env)
+    addBuiltin("list_group_by", _list_group_by, env)
 
 def init_tuple(env: Environment):
     """
