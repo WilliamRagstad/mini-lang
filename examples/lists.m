@@ -36,3 +36,8 @@ print("Group by:",
       list_group_by(d, (x) => x % 2 == 0)[true],
       list_group_by(d, (x) => x % 2 == 0) == #{false: [1, 3, 5, 7, 9], true: [2, 4, 6, 8]})
 
+// Ranges
+print("Range:", 0 .. 10, 0 .. 10 == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+a = 5
+b = 10
+print("Range:", a .. b, a .. b == [5, 6, 7, 8, 9])

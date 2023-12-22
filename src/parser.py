@@ -15,6 +15,7 @@ precedence_left = {
     'MINUS':    110,
     'BITWISEAND': 90,
     'BITWISEOR': 70,
+    'RANGE': 65,
     'LESS':     60,
     'LESSEQUAL':60,
     'GREATER':  60,

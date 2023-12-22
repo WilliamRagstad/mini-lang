@@ -287,6 +287,8 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
         return ValueAtom("bool", lhs.value and rhs.value)
     elif op == "OR" and compatible_types(lhs, rhs, ["bool"]):
         return ValueAtom("bool", lhs.value or rhs.value)
+    elif op == "RANGE" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("list", [ValueAtom("number", i) for i in range(lhs.value, rhs.value)])
     elif op == "INDEX" and compatible_type(lhs, ["list", "tuple", "map"]):
         if not isinstance(rhs, ValueAtom):
             raise Exception(f"Indexing expression in not a valid value type: {rhs}")
