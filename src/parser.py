@@ -1,6 +1,6 @@
 # Parser class
 from .lexer import Lexer, Token
-from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, SliceNode, TupleNode, UnaryNode
 
 # Left associative infix operators binding powers
 precedence_left = {
@@ -15,6 +15,7 @@ precedence_left = {
     'MINUS':    110,
     'BITWISEAND': 90,
     'BITWISEOR': 70,
+    'RANGE': 65,
     'LESS':     60,
     'LESSEQUAL':60,
     'GREATER':  60,
@@ -62,19 +63,25 @@ class Parser:
         return t
 
     # Tokenizer functions
-    def __parse_list_of_expressions(self, delimiter: str, end_delimiter: str) -> list[Node]:
+    def __parse_list_of_expressions(self, delimiter: str, end_delimiter: str, accept_trailing_delimiter: bool) -> list[Node]:
         """
         Parse a list of expressions from the lexer and return them as a list.
         The expressions are separated by the given delimiter and the list ends with the given end delimiter.
         No start delimiter is required.
+        If accept_trailing_delimiter is True, a trailing delimiter before the end delimiter is accepted.
         """
         expressions = []
         nt = self.lexer.peek_token()
         while nt.name != end_delimiter:
             expressions.append(self.__parse_expression())
             nt = self.lexer.peek_token()
+            # Check for the delimiter after an expression
             if nt.name == delimiter:
                 self.lexer.next_token()
+                nt = self.lexer.peek_token()
+                # If a trailing delimiter is accepted and the end delimiter is next, break the loop
+                if accept_trailing_delimiter and nt.name == end_delimiter:
+                    break
             elif nt.name != end_delimiter:
                 self.__error(f"Expected '{delimiter}' or '{end_delimiter}' but got '{nt.name}'", nt)
         self.lexer.next_token() # Remove the end delimiter
@@ -99,7 +106,7 @@ class Parser:
         """
         result = []
         for e in nodes:
-            if not (isinstance(e, AtomicNode) or e.name == "IDENTIFIER"):
+            if not (isinstance(e, AtomicNode) or e.type == "identifier"):
                 raise Exception(f"Lambda argument '{e}' is not an identifier!")
             result.append(e.value)
         return result
@@ -110,7 +117,7 @@ class Parser:
         """
         prev_comment = self.lexer.prev_comment()
         t = self.lexer.next_token()
-        if t.name in ["IDENTIFIER", "STRING", "NUMBER", "BOOLEAN"]:
+        if t.name in ["IDENTIFIER", "STRING", "NUMBER", "BOOL"]:
             value = AtomicNode(t.name.lower(), t.value)
             nt = self.lexer.peek_token()
             if nt.name == "RIGHTARROW":
@@ -118,19 +125,21 @@ class Parser:
             else:
                 return value
         elif t.name == "KEYWORD":
-            if t.value == "if":
-                return self.__parse_if()
-            raise Exception(f"Keyword '{t.value}' is not implemented!")
+            match t.value:
+                case "if": return self.__parse_if()
+                case _: raise Exception(f"Keyword '{t.value}' is not implemented!")
         elif t.name == "LPAREN":
-            lhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN"))
+            lhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN", False))
             # Check for trailing right arrow
             nt = self.lexer.peek_token()
             if nt.name == "RIGHTARROW":
                 return self.__parse_lambda(lhs.elements)
             else:
+                if len(lhs.elements) == 1:
+                    lhs = lhs.elements[0]
                 return lhs
         elif t.name == "LBRACKET":
-            return ListNode(self.__parse_list_of_expressions("COMMA", "RBRACKET"))
+            return ListNode(self.__parse_list_of_expressions("COMMA", "RBRACKET", True))
         elif t.name == "HASHBRACE":
             return self.__parse_hash_map()
         elif t.name == "LBRACE":
@@ -164,9 +173,18 @@ class Parser:
             if op == "INDEX":
                 self.__dprint(f"Parsing indexing expression")
                 rhs = self.__parse_expression()
+                # Check if range index
+                if self.lexer.peek_token().name == "COLON":
+                    self.lexer.next_token()
+                    end = self.__parse_expression()
+                    step = None
+                    if self.lexer.peek_token().name == "COLON":
+                        self.lexer.next_token()
+                        step = self.__parse_expression()
+                    rhs = SliceNode(rhs, end, step)
                 self.__expect("RBRACKET")
             elif op == 'CALL':
-                rhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN"))
+                rhs = TupleNode(self.__parse_list_of_expressions("COMMA", "RPAREN", False))
                 # if self.lexer.peek_token().name == "ASSIGNMENT":
                 #     self.lexer.next_token() # Remove the assignment
                 #     rhs = self.__parse_expression()
@@ -185,7 +203,7 @@ class Parser:
     def __parse_hash_map(self) -> MapNode:
         """
         Parse a hash map from the lexer.
-        Example: { "key1" : "value1", "key2" : "value2", 12 : "value3" }
+        Example: { "key1" : "value1", key2 : "value2", 12 : "value3" }
         """
         pairs = {}
         nt = self.lexer.peek_token()

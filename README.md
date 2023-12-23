@@ -82,7 +82,7 @@ Suggested directory: `C:\Program Files`, `C:\Program Filed (x86)` or `/usr/local
 The language has a rich set of features, including:
 
 * Basic arithmetic, logic, and comparison operators
-* Primitive data types such as `number`, `boolean`, and `string`
+* Primitive data types such as `number`, `bool`, and `string`
 * Collection data structures like `list`, `tuple`, `map`, and `set`
 * Lambda expressions and functions
 * Classes and inheritance
@@ -105,7 +105,7 @@ There are three primitive data types in `mini`:
     * Arithmetic operators: `+`, `-`, `*`, `/`, `%` (modulo)
     * Comparison operators: `==`, `!=`, `<`, `<=`, `>`, `>=`
     * Examples: `21`, `4.2`, `-3`, `-3.5`
-* `boolean` - Represents logical `true` or `false`
+* `bool` - Represents logical `true` or `false`
     * Logical operators: `&` (and), `|` (or), `!` (not)
     * Comparison operators: `==`
     * Examples: `true`, `false`
@@ -176,7 +176,7 @@ This is not currently supported in this language, but mainly processed by docume
  *
  * @param {number} x
  * @param {string} y
- * @returns {boolean}
+ * @returns {bool}
  **/
 ```
 
@@ -486,15 +486,15 @@ There are also a number of helper functions to convert values between different 
         * `number(true)` - Returns `1`
         * `number(#{'a': 1, 'b': 2})` - Fails with an error
         * `number("hello")` - Fails with an error
-* `boolean` - Boolean representation of a given value
+* `bool` - bool representation of a given value
     * Examples:
-        * `boolean('1')` - Returns `true`
-        * `boolean(1.23)` - Returns `true`
-        * `boolean(0)` - Returns `false`
-        * `boolean(true)` - Returns `true`
-        * `boolean("")` - Returns `false`
-        * `boolean(#{'a': 1, 'b': 2})` - Returns `true`
-        * `boolean("hello")` - Returns `true`
+        * `bool('1')` - Returns `true`
+        * `bool(1.23)` - Returns `true`
+        * `bool(0)` - Returns `false`
+        * `bool(true)` - Returns `true`
+        * `bool("")` - Returns `false`
+        * `bool(#{'a': 1, 'b': 2})` - Returns `true`
+        * `bool("hello")` - Returns `true`
 
 ### Control flow structures
 
@@ -709,7 +709,7 @@ Use `is` in an if-else statement to pattern match on values and change the contr
 ```ts
 if x is number "number"
 else if x is string "string"
-else if x is boolean "boolean"
+else if x is bool "bool"
 else "unknown"
 ```
 
@@ -718,7 +718,7 @@ Or more specifically, get the type of the value and bind it to a variable.
 ```ts
 if x is number(n) "number: " + n
 else if x is string(s) "string: " + s
-else if x is boolean(b) "boolean: " + b
+else if x is bool(b) "bool: " + b
 else "unknown: " + x
 ```
 

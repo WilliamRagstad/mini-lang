@@ -1,5 +1,5 @@
 from .atoms import Atom, BuiltinFunctionAtom, FunctionAtom, ValueAtom
-from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, TupleNode, UnaryNode
+from .ast import AtomicNode, BinaryNode, BlockNode, IfNode, LambdaNode, ListNode, MapNode, Node, ProgramNode, SliceNode, TupleNode, UnaryNode
 from .environment import Environment
 
 # Global variables
@@ -21,10 +21,10 @@ def compatible_types(lhs: Atom, rhs: Atom, types: list[str]) -> bool:
         raise Exception(f"Left hand side in expression is not an atomic value")
     if not isinstance(rhs, ValueAtom):
         raise Exception(f"Right hand side in expression is not an atomic value")
-    if lhs.valueType in types and rhs.valueType in types:
+    if lhs.type in types and rhs.type in types:
         return True
     else:
-        raise Exception(f"Incompatible types: {lhs.valueType} and {rhs.valueType}")
+        raise Exception(f"Incompatible types: {lhs.type} and {rhs.type}")
 
 def compatible_type(value: Atom, types: list[str]) -> bool:
     """
@@ -32,13 +32,13 @@ def compatible_type(value: Atom, types: list[str]) -> bool:
     """
     if not isinstance(value, ValueAtom):
         raise Exception(f"Value is not an atomic value")
-    if value.valueType in types:
+    if value.type in types:
         return True
     else:
-        raise Exception(f"Incompatible types: {value.valueType} and {types}")
+        raise Exception(f"Incompatible types: {value.type} and {types}")
 
 def is_identifier(expression: Node) -> bool:
-    return isinstance(expression, AtomicNode) and expression.valueType == "identifier"
+    return isinstance(expression, AtomicNode) and expression.type == "identifier"
 
 def is_identifier_members(expression: Node) -> bool:
     return isinstance(expression, BinaryNode) and expression.operator == "DOT" and (
@@ -83,13 +83,13 @@ def set_nested_value(obj: ValueAtom, path: list[str], rhs: Atom) -> ValueAtom:
 def evaluate_expression(expression: Node, env: Environment) -> Atom:
     if isinstance(expression, AtomicNode):
         if is_identifier(expression):
-            dprint(f"Evaluating identifier '{expression.value}'")
+            dprint(f"Evaluating identifier '{expression.raw_str()}'")
             val = env.get(expression.value)
             if val is None:
                 raise Exception(f"identifier '{expression.value}' is not defined")
             return val
         else:
-            return ValueAtom(expression.valueType, expression.value)
+            return ValueAtom(expression.type, expression.value)
     elif isinstance(expression, TupleNode):
         if len(expression.elements) == 0:
             return ValueAtom("unit", None)
@@ -100,17 +100,17 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
     elif isinstance(expression, ListNode):
         return ValueAtom("list", list(map(lambda e: evaluate_expression(e, env), expression.elements)))
     elif isinstance(expression, MapNode):
-        map_values: dict[str | int, Atom] = {}
+        map_values: dict[str, Atom] = {}
         for key, value in expression.pairs.items():
             if not isinstance(key, AtomicNode):
                 raise Exception(f"Key in map is not an atomic value")
-            if key.valueType == "number" and key.value.is_integer():
+            if key.type == "number" and key.value.is_integer():
                 key.value = int(key.value)
-                key.valueType = "integer"
-            if key.valueType not in ["identifier", "string", "integer"]:
-                raise Exception(f"Key in map is not an identifier, string or integer number")
+                key.type = "integer"
+            if key.type not in ["identifier", "string", "integer", "bool"]:
+                raise Exception(f"Key in map is not an identifier, string, integer or bool")
             value = evaluate_expression(value, env)
-            map_values[key.value] = value
+            map_values[str(key.value)] = value
         return ValueAtom("map", map_values)
     elif isinstance(expression, BlockNode):
         return evaluate_expressions(expression.expressions, Environment(f"<block>", env))
@@ -118,16 +118,16 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         return FunctionAtom(expression.params, expression.body, env)
     elif isinstance(expression, IfNode):
         cond = evaluate_expression(expression.condition, env)
-        if not isinstance(cond, ValueAtom) or not cond.valueType == "boolean":
-            raise Exception(f"Condition does not evaluate to a boolean")
+        if not isinstance(cond, ValueAtom) or not cond.type == "bool":
+            raise Exception(f"Condition does not evaluate to a bool")
         if cond.value:
             return evaluate_expression(expression.ifBody, env)
         else:
             # Iterate over the else-ifs
             for cond, body in expression.elseIfs:
                 cond = evaluate_expression(cond, env)
-                if not isinstance(cond, ValueAtom) or not cond.valueType == "boolean":
-                    raise Exception(f"Condition does not evaluate to a boolean")
+                if not isinstance(cond, ValueAtom) or not cond.type == "bool":
+                    raise Exception(f"Condition does not evaluate to a bool")
                 if cond.value:
                     return evaluate_expression(body, env)
             # Evaluate the else body
@@ -137,15 +137,15 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         rhs = evaluate_expression(expression.rhs, env)
         if op == "MINUS" and compatible_type(rhs, ["number"]):
             return ValueAtom("number", -rhs.value)
-        elif op == "NOT" and compatible_type(rhs, ["boolean"]):
-            return ValueAtom("boolean", not rhs.value)
+        elif op == "NOT" and compatible_type(rhs, ["bool"]):
+            return ValueAtom("bool", not rhs.value)
         else:
             raise Exception(f"Unkown unary operator '{op}'")
     elif isinstance(expression, BinaryNode):
         op = expression.operator
 
         if op == "ASSIGNMENT":
-            dprint(f"Evaluating assignment {expression.left} = {expression.right}")
+            dprint(f"Evaluating assignment {expression.left.formatted_str()} = {expression.right.formatted_str()}")
             if is_identifier(expression.left):
                 rhs = evaluate_expression(expression.right, env)
                 env.set(expression.left.value, rhs)
@@ -164,7 +164,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                 else:
                     raise Exception(f"Cannot set member of non-identifer values")
             elif isinstance(expression.left, BinaryNode) and expression.left.operator == "CALL":
-                # Function declaration
+                # Function declaration 
                 functionName = expression.left.left
                 if not is_identifier(functionName):
                     raise Exception(f"Function name is not an identifier")
@@ -174,7 +174,7 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
                     raise Exception(f"Function arguments are not a tuple")
                 argNames: list[str] = []
                 for a in args.elements:
-                    if not isinstance(a, AtomicNode) or a.valueType != "identifier":
+                    if not isinstance(a, AtomicNode) or a.type != "identifier":
                         raise Exception(f"Function argument '{a}' is not an identifier")
                     argNames.append(a.value)
                 # Assign the right hand side as body of the function
@@ -189,16 +189,35 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         lhs = evaluate_expression(expression.left, env)
         if op == "DOT":
             # Member access, last identifier is the member name and the rest is the object
-            dprint(f"Evaluating member access {lhs}.{expression.right} ({expression.right.__class__})")
+            dprint(f"Evaluating member access {lhs.formatted_str()}.{expression.right.formatted_str()} ({expression.right.__class__})")
             if not is_identifier(expression.right):
                 raise Exception(f"Cannot access member of {lhs.type} with non-identifier key")
             if not (isinstance(lhs, ValueAtom) and lhs.type in ["map", "tuple", "list"]):
                 raise Exception(f"Cannot access member of {lhs.type}")
-            if lhs.valueType == "map":
+            if lhs.type == "map":
                 if expression.right.value not in lhs.value:
                     raise Exception(f"Map does not contain key '{expression.right.value}'")
                 return lhs.value[expression.right.value]
             raise Exception(f"Cannot access member of {lhs.type}, not implemented yet")
+        elif op == "INDEX" and isinstance(expression.right, SliceNode): # Slice indexing
+            # Evaluate the slice indices
+            start = evaluate_expression(expression.right.start, env)
+            end = evaluate_expression(expression.right.end, env)
+            step = ValueAtom("number", 1)
+            if expression.right.step is not None:
+                step = evaluate_expression(expression.right.step, env)
+            # Check that the slice indices are integers
+            if not compatible_types(start, end, ["number"]) or not compatible_type(step, ["number"]):
+                raise Exception(f"Slice indices must be integers")
+            start, end, step = int(start.value), int(end.value), int(step.value)
+            if compatible_type(lhs, ["list", "tuple"]):
+                lhs_slice = lhs.value[start:end:step]
+                element = None
+                if lhs.type == "list": element = ValueAtom("list", lhs_slice)
+                elif lhs.type == "tuple": element = ValueAtom("tuple", lhs_slice)
+                else: raise Exception(f"Cannot slice index {lhs.type}")
+                dprint(f"Indexing {lhs.type}: {lhs.formatted_str()} with slice {start}:{end}:{step} -> {element.formatted_str()}")
+                return element
 
         rhs = evaluate_expression(expression.right, env)
         # The rest of the operators rely on the right hand side being evaluated first
@@ -209,8 +228,8 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         if op == "PLUSEQUAL" and compatible_types(lhs, rhs, ["string", "number"]):
             if not is_identifier(expression.left):
                 raise Exception(f"Left hand side of mutating assignment operator '{op}' must be an identifier")
-            if lhs.valueType == "string" or rhs.valueType == "string":
-                new_value = ValueAtom("string", lhs.value + str(rhs.value))
+            if lhs.type == "string" or rhs.type == "string":
+                new_value = ValueAtom("string", lhs.raw_str() + rhs.raw_str())
             else:
                 new_value = ValueAtom("number", lhs.value + rhs.value)
             env.set(expression.left.value, new_value)
@@ -221,30 +240,25 @@ def evaluate_expression(expression: Node, env: Environment) -> Atom:
         raise Exception(f"Unknown expression type '{type(expression)}'")
 
 def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environment) -> Atom:
-    dprint(f"Evaluating binary expression '{lhs} {op} {rhs}'")
-    if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "boolean", "list", "tuple", "map"]):
-        if lhs.valueType == "string" or rhs.valueType == "string":
-            return ValueAtom("string", lhs.value + rhs.value)
-        elif lhs.valueType == "list" and rhs.valueType == "list":
+    dprint(f"Evaluating binary expression {lhs.formatted_str()} {op} {rhs.formatted_str()}")
+    if op == "PLUS" and compatible_types(lhs, rhs, ["string", "number", "bool", "list", "tuple", "map"]):
+        if lhs.type == "string" or rhs.type == "string":
+            return ValueAtom("string", lhs.raw_str() + rhs.raw_str())
+        elif lhs.type == "list" and rhs.type == "list":
             return ValueAtom("list", lhs.value + rhs.value)
-        elif lhs.valueType == "number" and rhs.valueType == "number":
+        elif lhs.type == "number" and rhs.type == "number":
             return ValueAtom("number", lhs.value + rhs.value)
-        elif lhs.valueType == "tuple" and rhs.valueType == "tuple":
+        elif lhs.type == "tuple" and rhs.type == "tuple":
             # Ensure that the tuples have the same length
             if len(lhs.value) != len(rhs.value):
-                raise Exception(f"Tuple length mismatch: {len(lhs.value)} and {len(rhs.value)}")
-            new_value = []
-            for i in range(len(lhs.value)):
-                dprint(f"Evaluating {lhs.value[i]} {op} {rhs.value[i]}")
-                new_value.append(evaluate_binary_atom_expression("PLUS", lhs.value[i], rhs.value[i], env))
-            return ValueAtom("tuple", new_value)
-        elif lhs.valueType == "map" and rhs.valueType == "map":
+                raise Exception(f"Tuple size mismatch: {len(lhs.value)} and {len(rhs.value)}")
+            new_value = map(lambda e: evaluate_binary_atom_expression("PLUS", e[0], e[1], env), zip(lhs.value, rhs.value))
+            return ValueAtom("tuple", list(new_value))
+        elif lhs.type == "map" and rhs.type == "map":
             # Concate the maps
-            for key, lhs in rhs.value.items():
-                lhs.value[key] = lhs
-            return lhs
+            return ValueAtom("map", {**lhs.value, **rhs.value})
         else:
-            raise Exception(f"Cannot add {lhs.valueType} and {rhs.valueType}")
+            raise Exception(f"Cannot add {lhs.type} and {rhs.type}")
     elif op == "MINUS" and compatible_types(lhs, rhs, ["number"]):
         return ValueAtom("number", lhs.value - rhs.value)
     elif op == "MULTIPLY" and compatible_types(lhs, rhs, ["number"]):
@@ -255,31 +269,39 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
         return ValueAtom("number", lhs.value % rhs.value)
     elif op == "POWER" and compatible_types(lhs, rhs, ["number"]):
         return ValueAtom("number", lhs.value ** rhs.value)
-    elif op == "EQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean", "unit", "tuple", "list", "map"]):
-        if lhs.valueType != rhs.valueType:
-            return ValueAtom("boolean", False)
-        return ValueAtom("boolean", lhs.value == rhs.value)
-    elif op == "NOTEQUAL" and compatible_types(lhs, rhs, ["number", "string", "boolean"]):
-        return ValueAtom("boolean", lhs.value != rhs.value)
+    elif op == "EQUAL" and compatible_types(lhs, rhs, ["number", "string", "bool", "unit", "tuple", "list", "map"]):
+        if lhs.type != rhs.type:
+            return ValueAtom("bool", False)
+        return ValueAtom("bool", lhs.value == rhs.value)
+    elif op == "NOTEQUAL" and compatible_types(lhs, rhs, ["number", "string", "bool"]):
+        return ValueAtom("bool", lhs.value != rhs.value)
     elif op == "LESS" and compatible_types(lhs, rhs, ["number"]):
-        return ValueAtom("boolean", lhs.value < rhs.value)
+        return ValueAtom("bool", lhs.value < rhs.value)
     elif op == "GREATER" and compatible_types(lhs, rhs, ["number"]):
-        return ValueAtom("boolean", lhs.value > rhs.value)
+        return ValueAtom("bool", lhs.value > rhs.value)
     elif op == "LESSEQUAL" and compatible_types(lhs, rhs, ["number"]):
-        return ValueAtom("boolean", lhs.value <= rhs.value)
+        return ValueAtom("bool", lhs.value <= rhs.value)
     elif op == "GREATEREQUAL" and compatible_types(lhs, rhs, ["number"]):
-        return ValueAtom("boolean", lhs.value >= rhs.value)
-    elif op == "AND" and compatible_types(lhs, rhs, ["boolean"]):
-        return ValueAtom("boolean", lhs.value and rhs.value)
-    elif op == "OR" and compatible_types(lhs, rhs, ["boolean"]):
-        return ValueAtom("boolean", lhs.value or rhs.value)
+        return ValueAtom("bool", lhs.value >= rhs.value)
+    elif op == "AND" and compatible_types(lhs, rhs, ["bool"]):
+        return ValueAtom("bool", lhs.value and rhs.value)
+    elif op == "OR" and compatible_types(lhs, rhs, ["bool"]):
+        return ValueAtom("bool", lhs.value or rhs.value)
+    elif op == "RANGE" and compatible_types(lhs, rhs, ["number"]):
+        return ValueAtom("list", [ValueAtom("number", i) for i in range(lhs.value, rhs.value)])
     elif op == "INDEX" and compatible_type(lhs, ["list", "tuple", "map"]):
         if not isinstance(rhs, ValueAtom):
             raise Exception(f"Indexing expression in not a valid value type: {rhs}")
-        if rhs.valueType in ["number", "string"]:
-            index = rhs.value
-            element = lhs.value[index]
-            dprint(f"Indexing {lhs.type}: {lhs.value} with index {index} -> {element}")
+        if rhs.type in ["number", "string", "bool"]:
+            if lhs.type == "list" or lhs.type == "tuple":
+                element: Atom = lhs.value[rhs.value]
+            elif lhs.type == "map":
+                index = rhs.raw_str()
+                if index not in lhs.value:
+                    print(lhs.value)
+                    raise Exception(f"Map does not contain key '{index}'")
+                element: Atom = lhs.value[index]
+            dprint(f"Indexing {lhs.type}: {lhs.formatted_str()} with index {rhs.formatted_str()} -> {element.formatted_str()}")
             return element
         else:
             raise Exception(f"Indexing expression does not evaluate to an integer or string")
@@ -287,21 +309,24 @@ def evaluate_binary_atom_expression(op: str, lhs: Atom, rhs: Atom, env: Environm
         # The tuple may have been evaluated to a single value
         args = [rhs]
         if isinstance(rhs, ValueAtom):
-            if rhs.valueType == "tuple":
+            if rhs.type == "tuple":
                 args: list[Atom] = rhs.value
-            elif rhs.valueType == "unit":
+            elif rhs.type == "unit":
                 args = []
         # args = list(map(lambda e: evaluate_expression(e, env), rhs.value))
-        if isinstance(lhs, FunctionAtom):
-            return evaluate_function_call(lhs, args, env)
-        elif isinstance(lhs, BuiltinFunctionAtom):
-            return evaluate_builtin_function_call(lhs, args, env)
-        else:
-            raise Exception(f"Cannot call non-function: {lhs}")
+        return evaluate_call(lhs, args)
 
     return None
 
-def evaluate_function_call(function: FunctionAtom, args: list[Atom], env: Environment) -> Atom:
+def evaluate_call(function: FunctionAtom | BuiltinFunctionAtom, args: list[Atom]) -> Atom:
+    if isinstance(function, FunctionAtom):
+        return evaluate_function_atom_call(function, args)
+    elif isinstance(function, BuiltinFunctionAtom):
+        return function.func(args) # Call the builtin function
+    else:
+        raise Exception(f"Cannot call non-function: {function}")
+
+def evaluate_function_atom_call(function: FunctionAtom, args: list[Atom]) -> Atom:
     # Build a new environment for the function call
     # where the arguments are bound to the parameters
     funcEnv = Environment(f"<function {function.name}>", function.environment)
@@ -310,15 +335,6 @@ def evaluate_function_call(function: FunctionAtom, args: list[Atom], env: Enviro
     for name, val in zip(function.argumentNames, args):
         funcEnv.set(name, val)
     return evaluate_expression(function.body, funcEnv)
-
-def evaluate_builtin_function_call(function: BuiltinFunctionAtom, args: list[Atom], env: Environment) -> Atom:
-    # Check that all arguments are of value types, and then map them to their values
-    values = []
-    for a in args:
-        if not isinstance(a, ValueAtom):
-            raise Exception(f"Argument '{a}' does not evaluate to an atomic value")
-        values.append(a.value)
-    return function.func(*values)
 
 def evaluate_expressions(expressions: list[Node], env: Environment) -> Atom:
     """

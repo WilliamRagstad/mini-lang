@@ -24,46 +24,128 @@ class Atom():
         self.type = type
 
     def __str__(self):
+        return self.memory_repr()
+    
+    def structural_eq(self, other: "Atom") -> bool:
+        """
+        Check if two atoms are structurally equal.
+        """
+        raise Exception(f"Structural equality not implemented for base class '{self.__class__.__name__}'!")
+    
+    def __eq__(self, __value: object) -> bool:
+        if isinstance(__value, Atom):
+            return self.structural_eq(__value)
+        return False
+    
+    def raw_str(self):
+        """
+        Returns the raw value without any formatting.
+        For example, a string atom will return the string **without** quotes.
+        """
+        return str(self)
+    
+    def formatted_str(self):
+        """
+        Returns the formatted value.
+        For example, a string atom will return the string **with** quotes.
+        """
+        return str(self)
+
+    def memory_repr(self):
+        """
+        Returns the memory representation of the value.
+        """
         return f"<{self.uid}:{self.type}>"
+
+class IntrinsicAtom(Atom):
+    """
+    An intrinsic value node in the abstract syntax tree.
+    This is not intended to be created by the user.
+    """
+    def __init__(self, type: str, value):
+        """
+        Initialize an intrinsic value node with a value.
+
+        Parameters
+        ----------
+            type: The type of the value in lower case.
+                       E.g. "string", "number", "bool", "unit", "tuple", "list".
+            value: The value of the node.
+        """
+        super().__init__("Intrinsic", type)
+        self.value = value
+
+    def memory_repr(self):
+        return f"<{self.uid}:intrinsic:{self.type}:{self.value}>"
+
+    def structural_eq(self, other: "Atom") -> bool:
+        return isinstance(other, IntrinsicAtom) and self.type == other.type and self.value == other.value
 
 class ValueAtom(Atom):
     """
     An atomic value node in the abstract syntax tree.
     """
-    def __init__(self, valueType: str, value):
+    def __init__(self, type: str, value):
         """
         Initialize an atomic value node with a value.
 
         Parameters
         ----------
-            valueType: The type of the value in lower case.
-                       E.g. "string", "number", "boolean", "unit", "tuple", "list".
+            type: The type of the value in lower case.
+                       E.g. "string", "number", "bool", "unit", "tuple", "list".
             value: The value of the node.
         """
-        super().__init__("Value", valueType)
-        self.valueType = valueType
+        super().__init__("Value", type)
         self.value = value
 
     def listValueToStr(self):
-        return list(map(lambda a: str(a), self.value))
+        return list(map(lambda a: a.formatted_str(), self.value))
+    
+    def raw_str(self):
+        return self.format(True)
 
-    def __str__(self) -> str:
-        if self.valueType == "string":
-            return f"'{self.value}'"
-        elif self.valueType == "boolean":
+    def formatted_str(self):
+        return self.format(False)
+
+    def format(self, raw: bool) -> str:
+        if self.type == "string":
+            if raw: return self.value
+            escaped = self.value.replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r")
+            return f"'{escaped}'"
+        elif self.type == "bool":
             return str(self.value).lower()
-        elif self.valueType == "unit":
+        elif self.type == "unit":
             return "()"
-        elif self.valueType == "tuple":
+        elif self.type == "tuple":
             return '(' + ", ".join(self.listValueToStr()) + ')'
-        elif self.valueType == "list":
+        elif self.type == "list":
             return '[' + ", ".join(self.listValueToStr()) + ']'
-        elif self.valueType == "map":
-            return '#{' + ", ".join(map(lambda t: f"{t[0]}: {t[1]}", self.value.items())) + '}'
+        elif self.type == "map":
+            if not isinstance(self.value, dict):
+                raise Exception(f"ValueAtom of type 'map' has value of type '{type(self.value)}'!")
+            value: dict[str, ValueAtom] = self.value
+            return '#{' + ", ".join(map(lambda t: f"{t[0]}: {t[1].formatted_str()}", value.items())) + '}'
         return str(self.value)
 
-    def __eq__(self, __o: object) -> bool:
-        return isinstance(__o, ValueAtom) and self.valueType == __o.valueType and self.value == __o.value
+
+    def memory_repr(self):
+        return f"<{self.uid}:{self.type}:{self.formatted_str()}>"
+
+    def structural_eq(self, other: "Atom") -> bool:
+        if isinstance(other, ValueAtom) and self.type == other.type:
+            match self.type:
+                case "map":
+                    if len(self.value) != len(other.value): return False
+                    for key in self.value.keys():
+                        if key not in other.value: return False
+                        if not self.value[key].structural_eq(other.value[key]): return False
+                    return True
+                case "tuple" | "list":
+                    if len(self.value) != len(other.value): return False
+                    return all(map(lambda t: t[0].structural_eq(t[1]), zip(self.value, other.value)))
+                case "unit": return True # Unit is always equal
+                case _: return self.value == other.value
+        return False
 
 class FunctionAtom(Atom):
     """
@@ -79,8 +161,11 @@ class FunctionAtom(Atom):
         self.environment = environment
         self.name = name if name is not None else "lambda"
 
-    def __str__(self):
+    def memory_repr(self):
         return f"<{self.uid}:{self.name}({', '.join(self.argumentNames)})>"
+    
+    def structural_eq(self, other: "Atom") -> bool:
+        return isinstance(other, FunctionAtom) and self.uid == other.uid # Compare by uid
 
 class BuiltinFunctionAtom(Atom):
     """
@@ -94,5 +179,8 @@ class BuiltinFunctionAtom(Atom):
         self.functionName = functionName
         self.func = func
 
-    def __str__(self):
+    def memory_repr(self):
         return f"<built-in: {self.functionName}>"
+
+    def structural_eq(self, other: "Atom") -> bool:
+        return isinstance(other, BuiltinFunctionAtom) and self.uid == other.uid # Compare by uid

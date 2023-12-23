@@ -24,11 +24,11 @@ class Token():
 class Lexer:
     def __init__(self, source: TextIOBase, debug = False):
         self.__source = source
+        self.__process_queue: list[str] = [] # FIFO Queue of chars that have been read but not yet processed
         self.__line = 1
         self.__column = 1
         self.__debug = debug
         self.__prev_char: str = None # Previously read character
-        self.__peeked_char: str | None = None # The last character that was peeked
         self.__peeked_token: Token | None = None # The last token that was peeked
         self.__prev_comment: Token | None = None # The last comment that was read before the previous token
 
@@ -63,6 +63,23 @@ class Lexer:
         """
         return self.__source.readable()
 
+    def __queue_request(self, length: int):
+        """
+        Assert that the queue has at least the given length.
+        If the queue is too short, read more characters from source
+        until the queue is as long as the given length.
+
+        Parameters
+        ----------
+        length : int
+            The length to assert.
+        """
+        while len(self.__process_queue) < length:
+            if not self.__can_read(): break
+            c = self.__source.read(1)
+            if c == '': break
+            self.__process_queue.append(c)
+
     def __next_char(self):
         """
         Get the next character from source.
@@ -73,13 +90,9 @@ class Lexer:
             The next character from the source stream.
             Or None if the end of the stream has been reached.
         """
-        if self.__peeked_char is not None:
-            c = self.__peeked_char
-            self.__peeked_char = None # Reset peeked char
-        else:
-            if not self.__can_read():
-                return None
-            c = self.__source.read(1)
+        self.__queue_request(1)
+        if len(self.__process_queue) == 0: return None
+        c = self.__process_queue.pop(0)
         if c == '\n':
             self.__line += 1
             self.__column = 1
@@ -89,27 +102,37 @@ class Lexer:
             self.__column += 1
         self.__prev_char = c
         return c
-
-    def __peek_char(self):
+    
+    def __expect_char(self, expected: str):
         """
-        Get the next character from source without consuming it.
+        Assert that the next character from source is the expected character.
+
+        Parameters
+        ----------
+        expected : str
+            The expected character.
+        """
+        c = self.__next_char()
+        if c == None: self.__error(f"Expected {expected} but got EOF")
+        return c
+
+    def __peek_char(self, offset = 0) -> str:
+        """
+        Get the next character from source without consuming it from the stream.
+
+        Parameters
+        ----------
+        offset : int
+            The offset from the current position.
 
         Returns
         -------
-        str | None
+        str
             The next character from the source stream.
-            Or None if the end of the stream has been reached.
+            Or '\\0' if the end of the stream has been reached.
         """
-        if self.__peeked_char is not None:
-            return self.__peeked_char
-        else:
-            if not self.__can_read():
-                c = None
-            else:
-                c = self.__source.read(1)
-            # Put the character in the queue
-            self.__peeked_char = c
-            return c
+        self.__queue_request(1 + offset)
+        return self.__process_queue[offset] if len(self.__process_queue) > offset else '\0'
 
     def __read_string(self, quote: str) -> Token:
         """
@@ -127,11 +150,11 @@ class Lexer:
         """
         s = ""
         while self.__can_read():
-            c = self.__next_char()
+            c = self.__expect_char("string content, escape sequence, or closing quote")
             if c == quote:
                 return self.__token("STRING", s)
             elif c == '\\':
-                c = self.__next_char()
+                c = self.__expect_char("string escape sequence")
                 if c == 'n':
                     s += '\n'
                 elif c == 't':
@@ -160,7 +183,7 @@ class Lexer:
         s = first
         nc = self.__peek_char()
         while nc.isalnum() or nc == '_':
-            s += self.__next_char()
+            s += self.__expect_char("identifier character")
             if self.__can_read():
                 nc = self.__peek_char()
             else:
@@ -179,12 +202,13 @@ class Lexer:
         s = first
         decimalPoint = False
         nc = self.__peek_char()
-        while nc.isdigit() or nc == '.':
+        nnc = self.__peek_char(1)
+        while (nc.isdigit() or nc == '.') and not (nc == '.' and nnc == '.'):
             if nc == '.':
                 if decimalPoint:
                     break
                 decimalPoint = True
-            s += self.__next_char()
+            s += self.__expect_char("digit or decimal point")
             if self.__can_read():
                 nc = self.__peek_char()
             else:
@@ -220,23 +244,25 @@ class Lexer:
         if c.isalpha() or c == '_':
             t = self.__read_identifier(c)
             if t.value in ["true", "false"]:
-                return self.__token("BOOLEAN", t.value == "true")
+                return self.__token("BOOL", t.value == "true")
             if t.value in ["if", "else", "match", "class", "enum", "while", "for", "break", "continue", "return"]:
                 return self.__token("KEYWORD", t.value)
+            if t.value in ["and", "or", "not", "is", "in"]:
+                return self.__token(t.value.upper(), t.value)
             return t
         if c == '/' and nc == '/':
-            self.__next_char() # Consume the '/'
+            self.__expect_char("single line comment start")
             comment = ""
             while self.__can_read() and self.__peek_char() != '\n':
-                comment += self.__next_char()
+                comment += self.__expect_char("comment content")
             return self.__token("COMMENT", comment)
         if c == '/' and nc == '*':
-            self.__next_char() # Consume the '*'
+            self.__expect_char("multi line comment start")
             comment = ""
             while self.__can_read():
-                c = self.__next_char()
+                c = self.__expect_char("comment content")
                 if c == '*' and self.__peek_char() == '/':
-                    self.__next_char()
+                    self.__expect_char("multi line comment end")
                     break
                 comment += c
             return self.__token("COMMENT", comment)
@@ -255,6 +281,7 @@ class Lexer:
         if c == '&' and nc == '&': return self.__token("AND", c + self.__next_char())
         if c == '|' and nc == '|': return self.__token("OR", c + self.__next_char())
         if c == '#' and nc == '{': return self.__token("HASHBRACE", c + self.__next_char())
+        if c == '.' and nc == '.': return self.__token("RANGE", c + self.__next_char())
         if c == '+': return self.__token("PLUS", c)
         if c == '-': return self.__token("MINUS", c)
         if c == '*': return self.__token("MULTIPLY", c)

@@ -9,7 +9,21 @@ class Node():
         self.name = name
 
     def __str__(self):
-        return self.name
+        return self.formatted_str()
+    
+    def raw_str(self):
+        """
+        Returns the raw value without any formatting.
+        For example, a string node will return **ONLY** the string **with** quotes.
+        """
+        return self.formatted_str()
+    
+    def formatted_str(self):
+        """
+        Returns the formatted value.
+        For example, a string node will return the string **with** quotes and the type, e.g. `string('hello')`.
+        """
+        return str(self.name)
 
 class ProgramNode(Node):
     """
@@ -26,17 +40,32 @@ class AtomicNode(Node):
     """
     An atomic expression node in the abstract syntax tree.
     """
-    def __init__(self, valueType: str, value):
+    def __init__(self, type: str, value):
         """
         Initialize an atomic expression node with a value.
         """
         super().__init__("Atomic")
-        self.valueType = valueType
+        self.type = type
         self.value = value
 
-    def __str__(self):
-        value = f"'{self.value}'" if self.valueType == "string" else str(self.value)
-        return f"{self.valueType}({value})"
+
+    def raw_str(self):
+        """
+        Returns the raw value without any formatting.
+        For example, a string node will return **ONLY** the string **with** quotes.
+        """
+        if self.type == "string":
+            return f"'{self.value}'"
+        return str(self.value)
+    
+    def formatted_str(self):
+        """
+        Returns the formatted value.
+        For example, a string node will return the string **with** quotes and the type, e.g. `string('hello')`.
+        """
+        if self.type == "string":
+            return f"'{self.value}'"
+        return f"{self.type}({self.value})"
 
 class BlockNode(Node):
     """
@@ -49,7 +78,7 @@ class BlockNode(Node):
         super().__init__("Block")
         self.expressions = expressions
 
-    def __str__(self):
+    def formatted_str(self):
         return '{' + '; '.join(map(str, self.expressions)) + '}'
 
 class TupleNode(Node):
@@ -63,7 +92,7 @@ class TupleNode(Node):
         super().__init__("Tuple")
         self.elements = elements
 
-    def __str__(self):
+    def formatted_str(self):
         return '(' + ", ".join(map(str, self.elements)) + ')'
 
 class ListNode(Node):
@@ -77,8 +106,25 @@ class ListNode(Node):
         super().__init__("List")
         self.elements = elements
 
-    def __str__(self):
+    def formatted_str(self):
         return '[' + ", ".join(map(str, self.elements)) + ']'
+
+class SliceNode(Node):
+    """
+    A slice node in the abstract syntax tree.
+    """
+    def __init__(self, start: int, end: int, step: int | None):
+        """
+        Initialize a slice node with a start, end and step.
+        """
+        super().__init__("Slice")
+        self.start = start
+        self.end = end
+        self.step = step
+
+    def formatted_str(self):
+        step = f":{self.step}" if self.step is not None else ""
+        return f"<slice {self.start}:{self.end}{step}>"
 
 class MapNode(Node):
     """
@@ -91,8 +137,8 @@ class MapNode(Node):
         super().__init__("Map")
         self.pairs = pairs
 
-    def __str__(self):
-        return '{' + ', '.join(map(lambda t: f"{t[0]}: {t[1]}", self.pairs.items())) + '}'
+    def formatted_str(self):
+        return '#{' + ', '.join(map(lambda t: f"{t[0]}: {t[1]}", self.pairs.items())) + '}'
 
 class UnaryNode(Node):
     """
@@ -107,7 +153,7 @@ class UnaryNode(Node):
         self.operator = operator
         self.rhs = rhs
 
-    def __str__(self):
+    def formatted_str(self):
         return f"{self.operator}({self.rhs})"
 
 class BinaryNode(Node):
@@ -124,7 +170,7 @@ class BinaryNode(Node):
         self.left = left
         self.right = right
 
-    def __str__(self):
+    def formatted_str(self):
         return f"({self.left} {self.operator} {self.right})"
 
 class LambdaNode(Node):
@@ -139,7 +185,7 @@ class LambdaNode(Node):
         self.params = params
         self.body = body
 
-    def __str__(self):
+    def formatted_str(self):
         return f"({self.params} => {self.body})"
 
 class IfNode(Node):
