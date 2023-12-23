@@ -1,2 +1,2 @@
-usr = input("What is 12 * 2: ")
+usr = input("Calculate 12 * 2: ")
 print(usr == "42")
