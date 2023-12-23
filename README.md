@@ -725,7 +725,7 @@ else "unknown: " + x
 Can be used to handle optional values.
 
 ```fs
-if x is Optional.Some(v) "some: " + v
+if x is Some(v) "some: " + v
 else "none"
 ```
 
